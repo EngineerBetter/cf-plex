@@ -5,11 +5,23 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"io/ioutil"
 	"os"
-	"os/exec"
 )
 
 var _ = Describe("cf-plex", func() {
+	var tmpDir string
+
+	BeforeSuite(func() {
+		var err error
+		tmpDir, err = ioutil.TempDir("", "plex")
+		Ω(err).ShouldNot(HaveOccurred())
+	})
+
+	AfterSuite(func() {
+		Ω(os.RemoveAll(tmpDir)).Should(Succeed())
+	})
+
 	Describe("SetEnv", func() {
 		Context("when the env var is already set", func() {
 			It("replaces the value", func() {
@@ -33,11 +45,13 @@ var _ = Describe("cf-plex", func() {
 
 	It("calls external things", func() {
 		env := os.Environ()
-		cmd := exec.Command("cf", "api")
-		cmd.Env = SetEnv("CF_HOME", "/tmp", env)
-		bytes, err := cmd.Output()
-		output := string(bytes)
+		env = SetEnv("CF_HOME", tmpDir, env)
+		cmd := CommandWithEnv(env, "cf", "api")
+
+		Ω(Output(cmd)).Should(Equal("No api endpoint set. Use 'cf api' to set an endpoint\n"))
+
+		cmd = CommandWithEnv(env, "cf", "api", "https://api.bosh-lite.com", "--skip-ssl-validation")
+		err := cmd.Run()
 		Ω(err).ShouldNot(HaveOccurred())
-		Ω(output).Should(Equal("No api endpoint set. Use 'cf api' to set an endpoint\n"))
 	})
 })
