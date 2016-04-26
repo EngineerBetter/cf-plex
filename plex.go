@@ -7,7 +7,9 @@ import (
 )
 
 func main() {
-	cmd := CommandWithEnv(os.Environ(), "cf", "login")
+	args := os.Args
+	args[0] = "cf"
+	cmd := CommandWithEnv(os.Environ(), args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
