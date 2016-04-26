@@ -9,6 +9,7 @@ import (
 
 	"io/ioutil"
 	"os"
+	"time"
 )
 
 var _ = Describe("cf-plex", func() {
@@ -61,11 +62,20 @@ var _ = Describe("cf-plex", func() {
 		Ω(session.Out).Should(Say("Setting api endpoint to https://api.bosh-lite.com..."))
 		Ω(session.Out).Should(Say("OK"))
 
-		session, err = Start(CommandWithEnv(env, cliPath, "login"), GinkgoWriter, GinkgoWriter)
+		cmd := CommandWithEnv(env, cliPath, "login")
+		in, _ := cmd.StdinPipe()
 		Ω(err).ShouldNot(HaveOccurred())
-		session.Wait()
-		Eventually(session).Should(Exit(0))
-		Ω(session.Out).ShouldNot(Say("FAILED"))
+		session, err = Start(cmd, GinkgoWriter, GinkgoWriter)
+		Ω(err).ShouldNot(HaveOccurred())
+		time.Sleep(1 * time.Second)
+		in.Write([]byte("admin\n"))
+		time.Sleep(1 * time.Second)
+		in.Write([]byte("admin\n"))
+		time.Sleep(1 * time.Second)
+		in.Write([]byte("1\n"))
+		time.Sleep(1 * time.Second)
+		in.Write([]byte("1\n"))
+		Eventually(session, "5s").Should(Exit(0))
 	})
 
 	It("fails when subprocesses fail", func() {
