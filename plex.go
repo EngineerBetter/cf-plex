@@ -16,18 +16,7 @@ func main() {
 	cmd.Stderr = os.Stderr
 	cmd.Start()
 	err := cmd.Wait()
-	var exitCode int
-	status := cmd.ProcessState.Sys().(syscall.WaitStatus)
-	if status.Signaled() {
-		exitCode = 128 + int(status.Signal())
-	} else {
-		exitStatus := status.ExitStatus()
-		if exitStatus == -1 && err != nil {
-			exitCode = 254
-		}
-		exitCode = exitStatus
-	}
-	os.Exit(exitCode)
+	os.Exit(determineExitCode(cmd, err))
 }
 
 func SetEnv(key, value string, env []string) []string {
@@ -61,4 +50,19 @@ func Output(cmd *exec.Cmd) string {
 		os.Exit(1)
 	}
 	return string(bytes)
+}
+
+func determineExitCode(cmd *exec.Cmd, err error) (exitCode int) {
+	status := cmd.ProcessState.Sys().(syscall.WaitStatus)
+	if status.Signaled() {
+		exitCode = 128 + int(status.Signal())
+	} else {
+		exitStatus := status.ExitStatus()
+		if exitStatus == -1 && err != nil {
+			exitCode = 254
+		}
+		exitCode = exitStatus
+	}
+
+	return
 }
