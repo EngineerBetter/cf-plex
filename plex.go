@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"syscall"
 )
 
 func main() {
@@ -14,7 +15,19 @@ func main() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Start()
-	cmd.Wait()
+	err := cmd.Wait()
+	var exitCode int
+	status := cmd.ProcessState.Sys().(syscall.WaitStatus)
+	if status.Signaled() {
+		exitCode = 128 + int(status.Signal())
+	} else {
+		exitStatus := status.ExitStatus()
+		if exitStatus == -1 && err != nil {
+			exitCode = 254
+		}
+		exitCode = exitStatus
+	}
+	os.Exit(exitCode)
 }
 
 func SetEnv(key, value string, env []string) []string {

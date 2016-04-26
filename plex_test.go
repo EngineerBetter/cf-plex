@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gbytes"
-	"github.com/onsi/gomega/gexec"
+	. "github.com/onsi/gomega/gexec"
 
 	"io/ioutil"
 	"os"
@@ -48,17 +48,32 @@ var _ = Describe("cf-plex", func() {
 	It("calls external things", func() {
 		env := os.Environ()
 		env = SetEnv("CF_HOME", tmpDir, env)
-		cliPath, err := gexec.Build("github.com/EngineerBetter/cf-plex")
+		cliPath, err := Build("github.com/EngineerBetter/cf-plex")
 		Ω(err).ShouldNot(HaveOccurred())
-		session, err := gexec.Start(CommandWithEnv(env, cliPath, "api"), GinkgoWriter, GinkgoWriter)
+		session, err := Start(CommandWithEnv(env, cliPath, "api"), GinkgoWriter, GinkgoWriter)
 		Ω(err).ShouldNot(HaveOccurred())
 		session.Wait()
 		Ω(session.Out).Should(Say("No api endpoint set. Use 'cf api' to set an endpoint\n"))
 
-		session, err = gexec.Start(CommandWithEnv(env, cliPath, "api", "https://api.bosh-lite.com", "--skip-ssl-validation"), GinkgoWriter, GinkgoWriter)
+		session, err = Start(CommandWithEnv(env, cliPath, "api", "https://api.bosh-lite.com", "--skip-ssl-validation"), GinkgoWriter, GinkgoWriter)
 		Ω(err).ShouldNot(HaveOccurred())
 		session.Wait()
 		Ω(session.Out).Should(Say("Setting api endpoint to https://api.bosh-lite.com..."))
 		Ω(session.Out).Should(Say("OK"))
+
+		session, err = Start(CommandWithEnv(env, cliPath, "login"), GinkgoWriter, GinkgoWriter)
+		Ω(err).ShouldNot(HaveOccurred())
+		session.Wait()
+		Eventually(session).Should(Exit(0))
+		Ω(session.Out).ShouldNot(Say("FAILED"))
+	})
+
+	It("fails when subprocesses fail", func() {
+		env := os.Environ()
+		env = SetEnv("CF_HOME", tmpDir, env)
+		cliPath, err := Build("github.com/EngineerBetter/cf-plex")
+		Ω(err).ShouldNot(HaveOccurred())
+		session, err := Start(CommandWithEnv(env, cliPath, "rubbish"), GinkgoWriter, GinkgoWriter)
+		Eventually(session).Should(Exit(1))
 	})
 })
