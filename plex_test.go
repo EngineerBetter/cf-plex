@@ -14,11 +14,21 @@ import (
 
 var _ = Describe("cf-plex", func() {
 	var tmpDir string
+	var cfUsername string
+	var cfPassword string
 
 	BeforeSuite(func() {
 		var err error
 		tmpDir, err = ioutil.TempDir("", "plex")
 		Ω(err).ShouldNot(HaveOccurred())
+
+		cfUsername = os.Getenv("CF_USERNAME")
+		if cfUsername == "" {
+			cfUsername = "testing@engineerbetter.com"
+		}
+
+		cfPassword = os.Getenv("CF_PASSWORD")
+		Ω(cfPassword).ShouldNot(BeZero(), "CF_PASSWORD env var must be set")
 	})
 
 	AfterSuite(func() {
@@ -56,10 +66,10 @@ var _ = Describe("cf-plex", func() {
 		session.Wait()
 		Ω(session.Out).Should(Say("No api endpoint set. Use 'cf api' to set an endpoint\n"))
 
-		session, err = Start(CommandWithEnv(env, cliPath, "api", "https://api.bosh-lite.com", "--skip-ssl-validation"), GinkgoWriter, GinkgoWriter)
+		session, err = Start(CommandWithEnv(env, cliPath, "api", "https://api.run.pivotal.io"), GinkgoWriter, GinkgoWriter)
 		Ω(err).ShouldNot(HaveOccurred())
 		session.Wait()
-		Ω(session.Out).Should(Say("Setting api endpoint to https://api.bosh-lite.com..."))
+		Ω(session.Out).Should(Say("Setting api endpoint to https://api.run.pivotal.io..."))
 		Ω(session.Out).Should(Say("OK"))
 
 		cmd := CommandWithEnv(env, cliPath, "login")
@@ -68,9 +78,9 @@ var _ = Describe("cf-plex", func() {
 		session, err = Start(cmd, GinkgoWriter, GinkgoWriter)
 		Ω(err).ShouldNot(HaveOccurred())
 		time.Sleep(1 * time.Second)
-		in.Write([]byte("admin\n"))
+		in.Write([]byte(cfUsername + "\n"))
 		time.Sleep(1 * time.Second)
-		in.Write([]byte("admin\n"))
+		in.Write([]byte(cfPassword + "\n"))
 		time.Sleep(1 * time.Second)
 		in.Write([]byte("1\n"))
 		time.Sleep(1 * time.Second)
