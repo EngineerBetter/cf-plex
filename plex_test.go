@@ -64,7 +64,7 @@ var _ = Describe("cf-plex", func() {
 
 		session, err := Start(CommandWithEnv(env, cliPath, "apps"), GinkgoWriter, GinkgoWriter)
 		Ω(err).ShouldNot(HaveOccurred())
-		session.Wait("5s")
+		session.Wait("1s")
 		Ω(session.Err).Should(Say("No APIs have been set"))
 
 		session, err = Start(CommandWithEnv(env, cliPath, "add-api", "https://api.run.pivotal.io", cfUsername, cfPassword), GinkgoWriter, GinkgoWriter)
