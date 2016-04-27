@@ -17,7 +17,7 @@ var _ = Describe("cf-plex", func() {
 	var cfUsername string
 	var cfPassword string
 
-	BeforeSuite(func() {
+	BeforeEach(func() {
 		var err error
 		tmpDir, err = ioutil.TempDir("", "plex")
 		Ω(err).ShouldNot(HaveOccurred())
@@ -31,7 +31,7 @@ var _ = Describe("cf-plex", func() {
 		Ω(cfPassword).ShouldNot(BeZero(), "CF_PASSWORD env var must be set")
 	})
 
-	AfterSuite(func() {
+	AfterEach(func() {
 		Ω(os.RemoveAll(tmpDir)).Should(Succeed())
 	})
 
@@ -61,30 +61,26 @@ var _ = Describe("cf-plex", func() {
 		env = SetEnv("CF_PLEX_HOME", tmpDir, env)
 		cliPath, err := Build("github.com/EngineerBetter/cf-plex")
 		Ω(err).ShouldNot(HaveOccurred())
-		session, err := Start(CommandWithEnv(env, cliPath, "api"), GinkgoWriter, GinkgoWriter)
-		Ω(err).ShouldNot(HaveOccurred())
-		session.Wait()
-		Ω(session.Out).Should(Say("No api endpoint set. Use 'cf api' to set an endpoint\n"))
 
-		session, err = Start(CommandWithEnv(env, cliPath, "api", "https://api.run.pivotal.io"), GinkgoWriter, GinkgoWriter)
+		session, err := Start(CommandWithEnv(env, cliPath, "apps"), GinkgoWriter, GinkgoWriter)
 		Ω(err).ShouldNot(HaveOccurred())
-		session.Wait()
-		Ω(session.Out).Should(Say("Setting api endpoint to https://api.run.pivotal.io..."))
-		Ω(session.Out).Should(Say("OK"))
+		session.Wait("5s")
+		Ω(session.Err).Should(Say("No APIs have been set"))
 
-		cmd := CommandWithEnv(env, cliPath, "login")
+		session, err = Start(CommandWithEnv(env, cliPath, "add-api", "https://api.run.pivotal.io", cfUsername, cfPassword), GinkgoWriter, GinkgoWriter)
+		Ω(err).ShouldNot(HaveOccurred())
+		session.Wait("5s")
+		Ω(session.Out).Should(Say("Setting api endpoint to https://api.run.pivotal.io...\nOK"))
+
+		cmd := CommandWithEnv(env, cliPath, "delete-org", "does-not-exist")
 		in, _ := cmd.StdinPipe()
 		Ω(err).ShouldNot(HaveOccurred())
 		session, err = Start(cmd, GinkgoWriter, GinkgoWriter)
 		Ω(err).ShouldNot(HaveOccurred())
 		time.Sleep(1 * time.Second)
-		in.Write([]byte(cfUsername + "\n"))
-		time.Sleep(1 * time.Second)
-		in.Write([]byte(cfPassword + "\n"))
-		time.Sleep(1 * time.Second)
-		in.Write([]byte("1\n"))
-		time.Sleep(1 * time.Second)
-		in.Write([]byte("1\n"))
+		Ω(session).Should(Say("Really delete the org does-not-exist and everything associated with it?"))
+		in.Write([]byte("n\n"))
+		Eventually(session, "5s").Should(Say("Delete cancelled"))
 		Eventually(session, "5s").Should(Exit(0))
 	})
 

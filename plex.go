@@ -6,15 +6,38 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"sort"
 	"strings"
 	"syscall"
 )
 
 func main() {
 	args := os.Args
-
 	cfPlexHome := getConfigDir()
-	runCf(cfPlexHome, args)
+
+	switch args[1] {
+	case "add-api":
+		api := args[2]
+		username := args[3]
+		password := args[4]
+
+		apiDir := sanitiseApi(api)
+		fullPath := filepath.Join(cfPlexHome, apiDir)
+		err := os.MkdirAll(fullPath, 0700)
+		bailIfB0rked(err)
+		runCf(fullPath, []string{"", "api", api})
+		runCf(fullPath, []string{"", "auth", username, password})
+	default:
+		apiDirs, err := getApiDirs(cfPlexHome)
+		bailIfB0rked(err)
+		if len(apiDirs) == 0 {
+			os.Stderr.WriteString("No APIs have been set")
+			os.Exit(1)
+		}
+		for _, apiDir := range apiDirs {
+			runCf(apiDir, args)
+		}
+	}
 }
 
 func SetEnv(key, value string, env []string) []string {
@@ -61,16 +84,44 @@ func getConfigDir() (configDir string) {
 	return
 }
 
-func runCf(cfPlexHome string, args []string) {
+func sanitiseApi(api string) string {
+	api = strings.Replace(api, ":", "_", -1)
+	api = strings.Replace(api, "/", "_", -1)
+	return api
+}
+
+func getApiDirs(configDir string) ([]string, error) {
+	f, err := os.Open(configDir)
+	if err != nil {
+		return nil, err
+	}
+	names, err := f.Readdirnames(-1)
+	f.Close()
+	if err != nil {
+		return nil, err
+	}
+	sort.Strings(names)
+
+	for index, apiDir := range names {
+		names[index] = filepath.Join(configDir, apiDir)
+	}
+
+	return names, nil
+}
+
+func runCf(cfHome string, args []string) {
 	args[0] = "cf"
-	env := SetEnv("CF_HOME", cfPlexHome, os.Environ())
+	env := SetEnv("CF_HOME", cfHome, os.Environ())
 	cmd := CommandWithEnv(env, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Start()
 	err := cmd.Wait()
-	os.Exit(determineExitCode(cmd, err))
+	exitCode := determineExitCode(cmd, err)
+	if exitCode != 0 {
+		os.Exit(exitCode)
+	}
 }
 
 func determineExitCode(cmd *exec.Cmd, err error) (exitCode int) {
