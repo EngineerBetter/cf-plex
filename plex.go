@@ -12,17 +12,9 @@ import (
 
 func main() {
 	args := os.Args
-	args[0] = "cf"
 
 	cfPlexHome := getConfigDir()
-	env := SetEnv("CF_HOME", cfPlexHome, os.Environ())
-	cmd := CommandWithEnv(env, args...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Start()
-	err := cmd.Wait()
-	os.Exit(determineExitCode(cmd, err))
+	runCf(cfPlexHome, args)
 }
 
 func SetEnv(key, value string, env []string) []string {
@@ -67,6 +59,18 @@ func getConfigDir() (configDir string) {
 		configDir = filepath.Join(usrHome, ".cfplex")
 	}
 	return
+}
+
+func runCf(cfPlexHome string, args []string) {
+	args[0] = "cf"
+	env := SetEnv("CF_HOME", cfPlexHome, os.Environ())
+	cmd := CommandWithEnv(env, args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Start()
+	err := cmd.Wait()
+	os.Exit(determineExitCode(cmd, err))
 }
 
 func determineExitCode(cmd *exec.Cmd, err error) (exitCode int) {
