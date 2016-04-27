@@ -71,6 +71,7 @@ var _ = Describe("cf-plex", func() {
 		Ω(err).ShouldNot(HaveOccurred())
 		session.Wait("5s")
 		Ω(session.Out).Should(Say("Setting api endpoint to https://api.run.pivotal.io...\nOK"))
+		Ω(session.Out).Should(Say("Authenticating...\nOK"))
 
 		cmd := CommandWithEnv(env, cliPath, "delete-org", "does-not-exist")
 		in, _ := cmd.StdinPipe()
