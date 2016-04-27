@@ -73,6 +73,11 @@ var _ = Describe("cf-plex", func() {
 		Ω(session.Out).Should(Say("Setting api endpoint to https://api.run.pivotal.io...\nOK"))
 		Ω(session.Out).Should(Say("Authenticating...\nOK"))
 
+		session, err = Start(CommandWithEnv(env, cliPath, "list-apis"), GinkgoWriter, GinkgoWriter)
+		Ω(err).ShouldNot(HaveOccurred())
+		session.Wait("1s")
+		Ω(session.Out).Should(Say("https___api.run.pivotal.io"))
+
 		cmd := CommandWithEnv(env, cliPath, "delete-org", "does-not-exist")
 		in, _ := cmd.StdinPipe()
 		Ω(err).ShouldNot(HaveOccurred())

@@ -27,6 +27,12 @@ func main() {
 		bailIfB0rked(err)
 		runCf(fullPath, []string{"", "api", api})
 		runCf(fullPath, []string{"", "auth", username, password})
+	case "list-apis":
+		apiDirs, err := getApiDirs(cfPlexHome)
+		bailIfB0rked(err)
+		for _, apiDir := range apiDirs {
+			fmt.Println(apiDir)
+		}
 	default:
 		apiDirs, err := getApiDirs(cfPlexHome)
 		bailIfB0rked(err)
