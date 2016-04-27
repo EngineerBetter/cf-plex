@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega/gbytes"
 	. "github.com/onsi/gomega/gexec"
 
+	"io"
 	"io/ioutil"
 	"os"
 	"time"
@@ -67,11 +68,8 @@ var _ = Describe("cf-plex", func() {
 		session.Wait("1s")
 		Ω(session.Err).Should(Say("No APIs have been set"))
 
-		session, err = Start(CommandWithEnv(env, cliPath, "add-api", "https://api.run.pivotal.io", cfUsername, cfPassword), GinkgoWriter, GinkgoWriter)
-		Ω(err).ShouldNot(HaveOccurred())
-		session.Wait("5s")
-		Ω(session.Out).Should(Say("Setting api endpoint to https://api.run.pivotal.io...\nOK"))
-		Ω(session.Out).Should(Say("Authenticating...\nOK"))
+		addApi("https://api.run.pivotal.io", cfUsername, cfPassword, env, cliPath)
+		addApi("https://api.eu-gb.bluemix.net", cfUsername, cfPassword, env, cliPath)
 
 		session, err = Start(CommandWithEnv(env, cliPath, "list-apis"), GinkgoWriter, GinkgoWriter)
 		Ω(err).ShouldNot(HaveOccurred())
@@ -83,16 +81,16 @@ var _ = Describe("cf-plex", func() {
 		Ω(err).ShouldNot(HaveOccurred())
 		session, err = Start(cmd, GinkgoWriter, GinkgoWriter)
 		Ω(err).ShouldNot(HaveOccurred())
-		time.Sleep(1 * time.Second)
-		Ω(session).Should(Say("Really delete the org does-not-exist and everything associated with it?"))
-		in.Write([]byte("n\n"))
-		Eventually(session, "5s").Should(Say("Delete cancelled"))
-		Eventually(session, "5s").Should(Exit(0))
 
-		session, err = Start(CommandWithEnv(env, cliPath, "remove-api", "https://api.run.pivotal.io"), GinkgoWriter, GinkgoWriter)
-		Ω(err).ShouldNot(HaveOccurred())
-		session.Wait("1s")
-		Ω(session.Out).Should(Say("Removed https://api.run.pivotal.io"))
+		confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+		Eventually(session, "5s").Should(Say("Delete cancelled"))
+
+		confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+		Eventually(session, "5s").Should(Say("Delete cancelled"))
+		Eventually(session).Should(Exit(0))
+
+		removeApi("https://api.run.pivotal.io", env, cliPath)
+		removeApi("https://api.eu-gb.bluemix.net", env, cliPath)
 
 		session, err = Start(CommandWithEnv(env, cliPath, "apps"), GinkgoWriter, GinkgoWriter)
 		Ω(err).ShouldNot(HaveOccurred())
@@ -109,3 +107,24 @@ var _ = Describe("cf-plex", func() {
 		Eventually(session).Should(Exit(1))
 	})
 })
+
+func addApi(api, cfUsername, cfPassword string, env []string, cliPath string) {
+	session, err := Start(CommandWithEnv(env, cliPath, "add-api", api, cfUsername, cfPassword), GinkgoWriter, GinkgoWriter)
+	Ω(err).ShouldNot(HaveOccurred())
+	session.Wait("5s")
+	Ω(session.Out).Should(Say("Setting api endpoint to " + api + "...\nOK"))
+	Ω(session.Out).Should(Say("Authenticating...\nOK"))
+}
+
+func removeApi(api string, env []string, cliPath string) {
+	session, err := Start(CommandWithEnv(env, cliPath, "remove-api", api), GinkgoWriter, GinkgoWriter)
+	Ω(err).ShouldNot(HaveOccurred())
+	session.Wait("1s")
+	Ω(session.Out).Should(Say("Removed " + api))
+}
+
+func confirm(expectedPrompt, input string, session *Session, in io.Writer) {
+	time.Sleep(1 * time.Second)
+	Ω(session).Should(Say(expectedPrompt))
+	in.Write([]byte(input + "\n"))
+}
