@@ -48,7 +48,7 @@ var _ = Describe("cf-plex", func() {
 
 	It("calls external things", func() {
 		env := os.Environ()
-		env = SetEnv("CF_HOME", tmpDir, env)
+		env = SetEnv("CF_PLEX_HOME", tmpDir, env)
 		cliPath, err := Build("github.com/EngineerBetter/cf-plex")
 		Ω(err).ShouldNot(HaveOccurred())
 		session, err := Start(CommandWithEnv(env, cliPath, "api"), GinkgoWriter, GinkgoWriter)
@@ -80,7 +80,7 @@ var _ = Describe("cf-plex", func() {
 
 	It("fails when subprocesses fail", func() {
 		env := os.Environ()
-		env = SetEnv("CF_HOME", tmpDir, env)
+		env = SetEnv("CF_PLEX_HOME", tmpDir, env)
 		cliPath, err := Build("github.com/EngineerBetter/cf-plex")
 		Ω(err).ShouldNot(HaveOccurred())
 		session, err := Start(CommandWithEnv(env, cliPath, "rubbish"), GinkgoWriter, GinkgoWriter)
