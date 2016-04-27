@@ -33,6 +33,13 @@ func main() {
 		for _, apiDir := range apiDirs {
 			fmt.Println(apiDir)
 		}
+	case "remove-api":
+		api := args[2]
+		apiDir := sanitiseApi(api)
+		fullPath := filepath.Join(cfPlexHome, apiDir)
+		err := os.RemoveAll(fullPath)
+		bailIfB0rked(err)
+		fmt.Println("Removed " + api)
 	default:
 		apiDirs, err := getApiDirs(cfPlexHome)
 		bailIfB0rked(err)

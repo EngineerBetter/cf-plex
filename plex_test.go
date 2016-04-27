@@ -88,6 +88,16 @@ var _ = Describe("cf-plex", func() {
 		in.Write([]byte("n\n"))
 		Eventually(session, "5s").Should(Say("Delete cancelled"))
 		Eventually(session, "5s").Should(Exit(0))
+
+		session, err = Start(CommandWithEnv(env, cliPath, "remove-api", "https://api.run.pivotal.io"), GinkgoWriter, GinkgoWriter)
+		Ω(err).ShouldNot(HaveOccurred())
+		session.Wait("1s")
+		Ω(session.Out).Should(Say("Removed https://api.run.pivotal.io"))
+
+		session, err = Start(CommandWithEnv(env, cliPath, "apps"), GinkgoWriter, GinkgoWriter)
+		Ω(err).ShouldNot(HaveOccurred())
+		session.Wait("1s")
+		Ω(session.Err).Should(Say("No APIs have been set"))
 	})
 
 	It("fails when subprocesses fail", func() {
