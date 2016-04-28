@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -90,7 +91,8 @@ var _ = Describe("cf-plex", func() {
 
 		session, _ := startSession(env, cliPath, "target", "-s", "does-not-exist")
 		session.Wait()
-		Eventually(session.Out).ShouldNot(Say("FAILED\nAn org must be targeted before targeting a space\nFAILED\nAn org must be targeted before targeting a space"))
+		output := string(session.Buffer().Contents())
+		Ω(strings.Count(output, "FAILED")).ShouldNot(BeNumerically(">", 1))
 	})
 })
 
