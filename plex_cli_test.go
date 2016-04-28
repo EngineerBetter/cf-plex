@@ -90,6 +90,14 @@ var _ = Describe("cf-plex", func() {
 				Eventually(session).Should(Exit(1))
 			})
 		})
+
+		Context("when the API is absent", func() {
+			It("outputs a useful errror message", func() {
+				session, _ := startSession(env, cliPath, "add-api", cfUsername, cfPassword)
+				Eventually(session).Should(Say("usage: cf-plex add-api <apiUrl> <username> <password>"))
+				Eventually(session).Should(Exit(1))
+			})
+		})
 	})
 
 	Describe("running cf commands", func() {
