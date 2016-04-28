@@ -130,6 +130,7 @@ func runCf(cfHome string, args []string) {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	fmt.Printf("Running '%s' on %s", strings.Join(args, " "), path.Base(cfHome))
 	cmd.Start()
 	err := cmd.Wait()
 	exitCode := determineExitCode(cmd, err)

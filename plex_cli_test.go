@@ -57,9 +57,11 @@ var _ = Describe("cf-plex", func() {
 		Ω(string(session.Buffer().Contents())).ShouldNot(ContainSubstring(tmpDir))
 
 		session, in := startSession(env, cliPath, "delete-org", "does-not-exist")
+		Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.eu-gb.bluemix.net"))
 		confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
 		Eventually(session, "5s").Should(Say("Delete cancelled"))
 
+		Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.run.pivotal.io"))
 		confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
 		Eventually(session, "5s").Should(Say("Delete cancelled"))
 		Eventually(session).Should(Exit(0))
