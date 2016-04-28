@@ -82,6 +82,14 @@ var _ = Describe("cf-plex", func() {
 				Eventually(session).Should(Exit(1))
 			})
 		})
+
+		Context("when the password is absent", func() {
+			It("outputs a useful errror message", func() {
+				session, _ := startSession(env, cliPath, "add-api", "https://api.run.pivotal.io", cfUsername)
+				Eventually(session).Should(Say("usage: cf-plex add-api <apiUrl> <username> <password>"))
+				Eventually(session).Should(Exit(1))
+			})
+		})
 	})
 
 	Describe("running cf commands", func() {
