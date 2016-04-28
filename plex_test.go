@@ -57,7 +57,7 @@ var _ = Describe("cf-plex", func() {
 		})
 	})
 
-	It("calls external things", func() {
+	It("runs commands against multiple Cloud Foundry instances", func() {
 		env := os.Environ()
 		env = SetEnv("CF_PLEX_HOME", tmpDir, env)
 		cliPath, err := Build("github.com/EngineerBetter/cf-plex")
