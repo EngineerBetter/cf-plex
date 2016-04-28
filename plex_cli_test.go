@@ -51,6 +51,7 @@ var _ = Describe("cf-plex", func() {
 
 		session, _ = startSession(env, cliPath, "list-apis")
 		session.Wait("1s")
+		Ω(session.Out).Should(Say("https___api.eu-gb.bluemix.net"), "APIs should be alphabetically listed")
 		Ω(session.Out).Should(Say("https___api.run.pivotal.io"))
 
 		session, in := startSession(env, cliPath, "delete-org", "does-not-exist")
