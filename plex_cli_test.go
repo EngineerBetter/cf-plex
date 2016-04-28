@@ -18,6 +18,8 @@ var _ = Describe("cf-plex", func() {
 	var tmpDir string
 	var cfUsername string
 	var cfPassword string
+	var cliPath string
+	var env []string
 
 	BeforeEach(func() {
 		var err error
@@ -31,6 +33,10 @@ var _ = Describe("cf-plex", func() {
 
 		cfPassword = os.Getenv("CF_PASSWORD")
 		Ω(cfPassword).ShouldNot(BeZero(), "CF_PASSWORD env var must be set")
+
+		env = SetEnv("CF_PLEX_HOME", tmpDir, os.Environ())
+		cliPath, err = Build("github.com/EngineerBetter/cf-plex")
+		Ω(err).ShouldNot(HaveOccurred())
 	})
 
 	AfterEach(func() {
@@ -38,11 +44,6 @@ var _ = Describe("cf-plex", func() {
 	})
 
 	It("runs commands against multiple Cloud Foundry instances", func() {
-		env := os.Environ()
-		env = SetEnv("CF_PLEX_HOME", tmpDir, env)
-		cliPath, err := Build("github.com/EngineerBetter/cf-plex")
-		Ω(err).ShouldNot(HaveOccurred())
-
 		session, _ := startSession(env, cliPath, "apps")
 		session.Wait("1s")
 		Ω(session.Err).Should(Say("No APIs have been set"))
@@ -73,28 +74,23 @@ var _ = Describe("cf-plex", func() {
 		Eventually(session.Err).Should(Say("No APIs have been set"))
 	})
 
-	It("fails when subprocesses fail", func() {
-		env := os.Environ()
-		env = SetEnv("CF_PLEX_HOME", tmpDir, env)
-		cliPath, err := Build("github.com/EngineerBetter/cf-plex")
-		Ω(err).ShouldNot(HaveOccurred())
-		session, _ := Start(CommandWithEnv(env, cliPath, "rubbish"), GinkgoWriter, GinkgoWriter)
-		Eventually(session).Should(Exit(1))
-	})
 
-	It("does not run a command after it has failed against one API", func() {
-		env := os.Environ()
-		env = SetEnv("CF_PLEX_HOME", tmpDir, env)
-		cliPath, err := Build("github.com/EngineerBetter/cf-plex")
-		Ω(err).ShouldNot(HaveOccurred())
 
-		addApi("https://api.run.pivotal.io", cfUsername, cfPassword, env, cliPath)
-		addApi("https://api.eu-gb.bluemix.net", cfUsername, cfPassword, env, cliPath)
+	Describe("running cf commands", func() {
+		It("fails when subprocesses fail", func() {
+			session, _ := Start(CommandWithEnv(env, cliPath, "rubbish"), GinkgoWriter, GinkgoWriter)
+			Eventually(session).Should(Exit(1))
+		})
 
-		session, _ := startSession(env, cliPath, "target", "-s", "does-not-exist")
-		session.Wait()
-		output := string(session.Buffer().Contents())
-		Ω(strings.Count(output, "FAILED")).ShouldNot(BeNumerically(">", 1))
+		It("does not run a command after it has failed against one API", func() {
+			addApi("https://api.run.pivotal.io", cfUsername, cfPassword, env, cliPath)
+			addApi("https://api.eu-gb.bluemix.net", cfUsername, cfPassword, env, cliPath)
+
+			session, _ := startSession(env, cliPath, "target", "-s", "does-not-exist")
+			session.Wait()
+			output := string(session.Buffer().Contents())
+			Ω(strings.Count(output, "FAILED")).ShouldNot(BeNumerically(">", 1))
+		})
 	})
 })
 
