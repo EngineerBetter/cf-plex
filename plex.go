@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -31,7 +32,7 @@ func main() {
 		apiDirs, err := getApiDirs(cfPlexHome)
 		bailIfB0rked(err)
 		for _, apiDir := range apiDirs {
-			fmt.Println(apiDir)
+			fmt.Println(path.Base(apiDir))
 		}
 	case "remove-api":
 		api := args[2]

@@ -53,6 +53,7 @@ var _ = Describe("cf-plex", func() {
 		session.Wait("1s")
 		Ω(session.Out).Should(Say("https___api.eu-gb.bluemix.net"), "APIs should be alphabetically listed")
 		Ω(session.Out).Should(Say("https___api.run.pivotal.io"))
+		Ω(string(session.Buffer().Contents())).ShouldNot(ContainSubstring(tmpDir))
 
 		session, in := startSession(env, cliPath, "delete-org", "does-not-exist")
 		confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
@@ -76,6 +77,20 @@ var _ = Describe("cf-plex", func() {
 		Ω(err).ShouldNot(HaveOccurred())
 		session, _ := Start(CommandWithEnv(env, cliPath, "rubbish"), GinkgoWriter, GinkgoWriter)
 		Eventually(session).Should(Exit(1))
+	})
+
+	It("does not run a command after it has failed against one API", func() {
+		env := os.Environ()
+		env = SetEnv("CF_PLEX_HOME", tmpDir, env)
+		cliPath, err := Build("github.com/EngineerBetter/cf-plex")
+		Ω(err).ShouldNot(HaveOccurred())
+
+		addApi("https://api.run.pivotal.io", cfUsername, cfPassword, env, cliPath)
+		addApi("https://api.eu-gb.bluemix.net", cfUsername, cfPassword, env, cliPath)
+
+		session, _ := startSession(env, cliPath, "target", "-s", "does-not-exist")
+		session.Wait()
+		Eventually(session.Out).ShouldNot(Say("FAILED\nAn org must be targeted before targeting a space\nFAILED\nAn org must be targeted before targeting a space"))
 	})
 })
 
