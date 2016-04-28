@@ -74,7 +74,15 @@ var _ = Describe("cf-plex", func() {
 		Eventually(session.Err).Should(Say("No APIs have been set"))
 	})
 
-
+	Describe("adding apis", func() {
+		Context("when the username is absent", func() {
+			It("outputs a useful errror message", func() {
+				session, _ := startSession(env, cliPath, "add-api", "https://api.run.pivotal.io", cfPassword)
+				Eventually(session).Should(Say("usage: cf-plex add-api <apiUrl> <username> <password>"))
+				Eventually(session).Should(Exit(1))
+			})
+		})
+	})
 
 	Describe("running cf commands", func() {
 		It("fails when subprocesses fail", func() {

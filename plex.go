@@ -18,6 +18,10 @@ func main() {
 
 	switch args[1] {
 	case "add-api":
+		if len(args) != 5 {
+			fmt.Println("usage: cf-plex add-api <apiUrl> <username> <password>")
+			os.Exit(1)
+		}
 		api := args[2]
 		username := args[3]
 		password := args[4]
