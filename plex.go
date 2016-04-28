@@ -53,7 +53,10 @@ func main() {
 			os.Exit(1)
 		}
 		for _, apiDir := range apiDirs {
-			runCf(apiDir, args)
+			exitCode := runCf(apiDir, args)
+			if exitCode != 0 {
+				os.Exit(exitCode)
+			}
 		}
 	}
 }
@@ -127,7 +130,7 @@ func getApiDirs(configDir string) ([]string, error) {
 	return names, nil
 }
 
-func runCf(cfHome string, args []string) {
+func runCf(cfHome string, args []string) int {
 	args[0] = "cf"
 	env := SetEnv("CF_HOME", cfHome, os.Environ())
 	cmd := CommandWithEnv(env, args...)
@@ -137,10 +140,7 @@ func runCf(cfHome string, args []string) {
 	fmt.Printf("Running '%s' on %s", strings.Join(args, " "), path.Base(cfHome))
 	cmd.Start()
 	err := cmd.Wait()
-	exitCode := determineExitCode(cmd, err)
-	if exitCode != 0 {
-		os.Exit(exitCode)
-	}
+	return determineExitCode(cmd, err)
 }
 
 func determineExitCode(cmd *exec.Cmd, err error) (exitCode int) {
