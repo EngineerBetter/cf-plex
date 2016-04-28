@@ -73,7 +73,7 @@ var _ = Describe("cf-plex", func() {
 		env = SetEnv("CF_PLEX_HOME", tmpDir, env)
 		cliPath, err := Build("github.com/EngineerBetter/cf-plex")
 		Ω(err).ShouldNot(HaveOccurred())
-		session, err := Start(CommandWithEnv(env, cliPath, "rubbish"), GinkgoWriter, GinkgoWriter)
+		session, _ := Start(CommandWithEnv(env, cliPath, "rubbish"), GinkgoWriter, GinkgoWriter)
 		Eventually(session).Should(Exit(1))
 	})
 })
