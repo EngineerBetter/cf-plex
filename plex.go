@@ -52,9 +52,19 @@ func main() {
 			os.Stderr.WriteString("No APIs have been set")
 			os.Exit(1)
 		}
+
+		var force bool
+		for _, arg := range args {
+			if arg == "--force" {
+				force = true
+				args = args[:len(args)-1]
+				break
+			}
+		}
+
 		for _, apiDir := range apiDirs {
 			exitCode := runCf(apiDir, args)
-			if exitCode != 0 {
+			if exitCode != 0 && !force {
 				os.Exit(exitCode)
 			}
 		}

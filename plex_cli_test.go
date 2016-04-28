@@ -1,17 +1,17 @@
 package main_test
 
 import (
-	. "github.com/EngineerBetter/cf-plex"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/gbytes"
-	. "github.com/onsi/gomega/gexec"
-
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
 	"time"
+
+	. "github.com/EngineerBetter/cf-plex"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gbytes"
+	. "github.com/onsi/gomega/gexec"
 )
 
 var _ = Describe("cf-plex", func() {
@@ -114,6 +114,18 @@ var _ = Describe("cf-plex", func() {
 			session.Wait()
 			output := string(session.Buffer().Contents())
 			Ω(strings.Count(output, "FAILED")).ShouldNot(BeNumerically(">", 1))
+		})
+
+		Context("when --force is supplied", func() {
+			It("runs against all targets even if the first command fails", func() {
+				addApi("https://api.run.pivotal.io", cfUsername, cfPassword, env, cliPath)
+				addApi("https://api.eu-gb.bluemix.net", cfUsername, cfPassword, env, cliPath)
+				// BlueMix has org named after user. Neither public CF allows us to create orgs
+				session, _ := startSession(env, cliPath, "target", "-o", "testing@engineerbetter.com", "--force")
+				session.Wait("5s")
+				output := string(session.Buffer().Contents())
+				Ω(strings.Count(output, "FAILED")).Should(BeNumerically("==", 1))
+			})
 		})
 	})
 })
