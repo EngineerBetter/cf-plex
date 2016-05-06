@@ -63,12 +63,9 @@ func main() {
 		}
 
 		var force bool
-		for _, arg := range args {
-			if arg == "--force" {
-				force = true
-				args = args[:len(args)-1]
-				break
-			}
+		if args[len(args)-1] == "--force" {
+			force = true
+			args = args[:len(args)-1]
 		}
 
 		for _, apiDir := range apiDirs {
