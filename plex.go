@@ -18,13 +18,8 @@ func main() {
 
 	switch args[1] {
 	case "add-api":
-		env := os.Environ()
-		for _, envVar := range env {
-			if strings.HasPrefix(envVar, "CF_ENVS") {
-				fmt.Println("Managing APIs is not allowed when CF_ENVS is set")
-				os.Exit(1)
-			}
-		}
+		bailIfCfEnvs()
+
 		switch len(args) {
 		case 3:
 			api := args[2]
@@ -49,6 +44,8 @@ func main() {
 			os.Exit(1)
 		}
 	case "list-apis":
+		bailIfCfEnvs()
+
 		apiDirs, err := getApiDirs(cfPlexHome)
 		bailIfB0rked(err)
 		for _, apiDir := range apiDirs {
@@ -126,6 +123,16 @@ func getConfigDir() (configDir string) {
 		configDir = filepath.Join(usrHome, ".cfplex")
 	}
 	return
+}
+
+func bailIfCfEnvs() {
+	env := os.Environ()
+	for _, envVar := range env {
+		if strings.HasPrefix(envVar, "CF_ENVS") {
+			fmt.Println("Managing APIs is not allowed when CF_ENVS is set")
+			os.Exit(1)
+		}
+	}
 }
 
 func sanitiseApi(api string) string {

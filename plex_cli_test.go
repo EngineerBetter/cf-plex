@@ -150,6 +150,12 @@ var _ = Describe("cf-plex", func() {
 			Eventually(session).Should(Say("Managing APIs is not allowed when CF_ENVS is set"))
 			Eventually(session).Should(Exit(1))
 		})
+
+		It("Disallows list-apis", func() {
+			session, _ := startSession(env, cliPath, "list-apis")
+			Eventually(session).Should(Say("Managing APIs is not allowed when CF_ENVS is set"))
+			Eventually(session).Should(Exit(1))
+		})
 	})
 })
 
