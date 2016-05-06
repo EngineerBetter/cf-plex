@@ -42,5 +42,12 @@ var _ = Describe("env", func() {
 			Ω(coords[0]).Should(Equal(Coord{Username: "user1", Password: "pass1", Api: "api1.com"}))
 			Ω(coords[1]).Should(Equal(Coord{Username: "user2", Password: "pass2", Api: "api2.com"}))
 		})
+
+		It("returns an error for invalid values", func() {
+			cfEnv := "username:password@api.com;user:pass"
+			_, err := GetCoordinates(cfEnv)
+			Ω(err).Should(HaveOccurred())
+			Ω(err).Should(MatchError("user:pass is invalid"))
+		})
 	})
 })
