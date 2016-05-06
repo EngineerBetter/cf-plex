@@ -38,7 +38,7 @@ func main() {
 			runCf(fullPath, []string{"", "api", api})
 			runCf(fullPath, []string{"", "auth", username, password})
 		default:
-			fmt.Println("usage: cf-plex add-api <apiUrl> <username> <password>")
+			fmt.Println("usage: cf-plex add-api <apiUrl> [<username> <password>]")
 			os.Exit(1)
 		}
 	case "list-apis":
