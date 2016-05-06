@@ -15,6 +15,13 @@ cf-plex list-apis
 cf-plex remove-api https://api.another.com
 ```
 
+`cf-plex` will fail fast if the `cf` CLI returns a non-zero exit code against any API. To override this behaviour (ignore the error and continue running the command) specify `--force`:
+
+```
+# Will continue even if it fails against one API
+cf-plex delete org might-not-exist --force
+```
+
 ## Testing
 
 ```
