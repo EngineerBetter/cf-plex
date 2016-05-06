@@ -52,6 +52,8 @@ func main() {
 			fmt.Println(path.Base(apiDir))
 		}
 	case "remove-api":
+		bailIfCfEnvs()
+
 		api := args[2]
 		apiDir := sanitiseApi(api)
 		fullPath := filepath.Join(cfPlexHome, apiDir)

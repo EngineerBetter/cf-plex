@@ -156,6 +156,12 @@ var _ = Describe("cf-plex", func() {
 			Eventually(session).Should(Say("Managing APIs is not allowed when CF_ENVS is set"))
 			Eventually(session).Should(Exit(1))
 		})
+
+		It("Disallows remove-api", func() {
+			session, _ := startSession(env, cliPath, "remove-api", "https://api.run.pivotal.io")
+			Eventually(session).Should(Say("Managing APIs is not allowed when CF_ENVS is set"))
+			Eventually(session).Should(Exit(1))
+		})
 	})
 })
 
