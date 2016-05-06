@@ -137,6 +137,20 @@ var _ = Describe("cf-plex", func() {
 			})
 		})
 	})
+
+	Describe("Specifying APIs via CF_ENVs", func() {
+		var cfEnvs string
+		BeforeEach(func() {
+			cfEnvs = cfUsername + ":" + cfPassword + "@https://api.run.pivotal.io;" + cfUsername + ":" + cfPassword + "@https://api.eu-gb.bluemix.net"
+			env = append(env, "CF_ENVS="+cfEnvs)
+		})
+
+		It("Disallows add-api", func() {
+			session, _ := startSession(env, cliPath, "add-api", "https://api.run.pivotal.io")
+			Eventually(session).Should(Say("Managing APIs is not allowed when CF_ENVS is set"))
+			Eventually(session).Should(Exit(1))
+		})
+	})
 })
 
 func startSession(env []string, args ...string) (*Session, io.Writer) {

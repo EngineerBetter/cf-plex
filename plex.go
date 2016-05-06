@@ -18,6 +18,13 @@ func main() {
 
 	switch args[1] {
 	case "add-api":
+		env := os.Environ()
+		for _, envVar := range env {
+			if strings.HasPrefix(envVar, "CF_ENVS") {
+				fmt.Println("Managing APIs is not allowed when CF_ENVS is set")
+				os.Exit(1)
+			}
+		}
 		switch len(args) {
 		case 3:
 			api := args[2]
