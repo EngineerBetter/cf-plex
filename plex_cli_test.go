@@ -75,6 +75,15 @@ var _ = Describe("cf-plex", func() {
 	})
 
 	Describe("adding apis", func() {
+		Context("when the username and password are absent", func() {
+			It("assumes the user wants interactive login", func() {
+				session, in := startSession(env, cliPath, "add-api", "https://api.run.pivotal.io")
+				confirm("Email>", cfUsername, session, in)
+				confirm("Password>", cfPassword, session, in)
+				Eventually(session, "5s").Should(Say("Authenticating...\nOK"))
+			})
+		})
+
 		Context("when the username is absent", func() {
 			It("outputs a useful errror message", func() {
 				session, _ := startSession(env, cliPath, "add-api", "https://api.run.pivotal.io", cfPassword)

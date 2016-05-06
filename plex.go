@@ -18,20 +18,29 @@ func main() {
 
 	switch args[1] {
 	case "add-api":
-		if len(args) != 5 {
+		switch len(args) {
+		case 3:
+			api := args[2]
+			apiDir := sanitiseApi(api)
+			fullPath := filepath.Join(cfPlexHome, apiDir)
+			err := os.MkdirAll(fullPath, 0700)
+			bailIfB0rked(err)
+			runCf(fullPath, []string{"", "login", "-a", api})
+		case 5:
+			api := args[2]
+			username := args[3]
+			password := args[4]
+
+			apiDir := sanitiseApi(api)
+			fullPath := filepath.Join(cfPlexHome, apiDir)
+			err := os.MkdirAll(fullPath, 0700)
+			bailIfB0rked(err)
+			runCf(fullPath, []string{"", "api", api})
+			runCf(fullPath, []string{"", "auth", username, password})
+		default:
 			fmt.Println("usage: cf-plex add-api <apiUrl> <username> <password>")
 			os.Exit(1)
 		}
-		api := args[2]
-		username := args[3]
-		password := args[4]
-
-		apiDir := sanitiseApi(api)
-		fullPath := filepath.Join(cfPlexHome, apiDir)
-		err := os.MkdirAll(fullPath, 0700)
-		bailIfB0rked(err)
-		runCf(fullPath, []string{"", "api", api})
-		runCf(fullPath, []string{"", "auth", username, password})
 	case "list-apis":
 		apiDirs, err := getApiDirs(cfPlexHome)
 		bailIfB0rked(err)
