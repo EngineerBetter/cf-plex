@@ -45,6 +45,8 @@ cf-plex delete org might-not-exist --force
 
 ## Testing
 
+Currently depends on having an account on Pivotal Web Services and BlueMix.
+
 ```
 CF_USERNAME=testing@engineerbetter.com \
 CF_PASSWORD=lookitup \
