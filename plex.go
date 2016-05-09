@@ -24,15 +24,13 @@ func main() {
 	cfPlexHome := getConfigDir()
 
 	if len(args) == 1 {
-		fmt.Println("Usage:")
-		fmt.Println(cfUsage)
-		fmt.Println(addUsage)
-		fmt.Println(listUsage)
-		fmt.Println(removeUsage)
-		os.Exit(1)
+		printUsageAndBail()
 	}
 
 	switch args[1] {
+	case "help":
+	case "--help":
+		printUsageAndBail()
 	case "add-api":
 		bailIfCfEnvs()
 
@@ -239,6 +237,15 @@ func determineExitCode(cmd *exec.Cmd, err error) (exitCode int) {
 	}
 
 	return
+}
+
+func printUsageAndBail() {
+	fmt.Println("Usage:")
+	fmt.Println(cfUsage)
+	fmt.Println(addUsage)
+	fmt.Println(listUsage)
+	fmt.Println(removeUsage)
+	os.Exit(1)
 }
 
 func bailIfB0rked(err error) {

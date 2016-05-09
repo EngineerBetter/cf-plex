@@ -14,10 +14,11 @@ import (
 	. "github.com/onsi/gomega/gexec"
 )
 
+var addUsageMatcher = "cf-plex add-api <apiUrl> \\[<username> <password>\\]"
+var listUsageMatcher = "cf-plex list-apis"
+var removeUsageMatcher = "cf-plex remove-api <apiUrl>"
+
 var _ = Describe("cf-plex", func() {
-	var addUsageMatcher = "cf-plex add-api <apiUrl> \\[<username> <password>\\]"
-	var listUsageMatcher = "cf-plex list-apis"
-	var removeUsageMatcher = "cf-plex remove-api <apiUrl>"
 
 	var tmpDir string
 	var cfUsername string
@@ -193,14 +194,17 @@ var _ = Describe("cf-plex", func() {
 		})
 	})
 
+	Describe("asking for help", func() {
+		It("outputs usage of all commands", func() {
+			session, _ := startSession(env, cliPath)
+			expectUsage(session)
+		})
+	})
+
 	Context("when no sub-command is specified", func() {
 		It("outputs usage of all commands", func() {
 			session, _ := startSession(env, cliPath)
-			Eventually(session).Should(Say("Usage:"))
-			Eventually(session).Should(Say("cf-plex <cf cli command> [--force]"))
-			Eventually(session).Should(Say(addUsageMatcher))
-			Eventually(session).Should(Say(listUsageMatcher))
-			Eventually(session).Should(Say(removeUsageMatcher))
+			expectUsage(session)
 		})
 	})
 })
@@ -231,4 +235,12 @@ func confirm(expectedPrompt, input string, session *Session, in io.Writer) {
 	time.Sleep(1 * time.Second)
 	Ω(session).Should(Say(expectedPrompt))
 	in.Write([]byte(input + "\n"))
+}
+
+func expectUsage(session *Session) {
+	Eventually(session).Should(Say("Usage:"))
+	Eventually(session).Should(Say("cf-plex <cf cli command> [--force]"))
+	Eventually(session).Should(Say(addUsageMatcher))
+	Eventually(session).Should(Say(listUsageMatcher))
+	Eventually(session).Should(Say(removeUsageMatcher))
 }
