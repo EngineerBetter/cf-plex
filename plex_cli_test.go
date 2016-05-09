@@ -15,6 +15,10 @@ import (
 )
 
 var _ = Describe("cf-plex", func() {
+	var addUsageMatcher = "cf-plex add-api <apiUrl> \\[<username> <password>\\]"
+	var listUsageMatcher = "cf-plex list-apis"
+	var removeUsageMatcher = "cf-plex remove-api <apiUrl>"
+
 	var tmpDir string
 	var cfUsername string
 	var cfPassword string
@@ -87,7 +91,7 @@ var _ = Describe("cf-plex", func() {
 		Context("when the username is absent", func() {
 			It("outputs a useful errror message", func() {
 				session, _ := startSession(env, cliPath, "add-api", "https://api.run.pivotal.io", cfPassword)
-				Eventually(session).Should(Say("Usage: cf-plex add-api <apiUrl> \\[<username> <password>\\]"))
+				Eventually(session).Should(Say("Usage: " + addUsageMatcher))
 				Eventually(session).Should(Exit(1))
 			})
 		})
@@ -95,7 +99,7 @@ var _ = Describe("cf-plex", func() {
 		Context("when the password is absent", func() {
 			It("outputs a useful errror message", func() {
 				session, _ := startSession(env, cliPath, "add-api", "https://api.run.pivotal.io", cfUsername)
-				Eventually(session).Should(Say("Usage: cf-plex add-api <apiUrl> \\[<username> <password>\\]"))
+				Eventually(session).Should(Say("Usage: " + addUsageMatcher))
 				Eventually(session).Should(Exit(1))
 			})
 		})
@@ -103,7 +107,7 @@ var _ = Describe("cf-plex", func() {
 		Context("when the API is absent", func() {
 			It("outputs a useful errror message", func() {
 				session, _ := startSession(env, cliPath, "add-api", cfUsername, cfPassword)
-				Eventually(session).Should(Say("Usage: cf-plex add-api <apiUrl> \\[<username> <password>\\]"))
+				Eventually(session).Should(Say("Usage: " + addUsageMatcher))
 				Eventually(session).Should(Exit(1))
 			})
 		})
@@ -113,7 +117,7 @@ var _ = Describe("cf-plex", func() {
 		Context("when the api is not provided", func() {
 			It("outputs a useful error message", func() {
 				session, _ := startSession(env, cliPath, "remove-api")
-				Eventually(session).Should(Say("Usage: cf-plex remove-api <apiUrl>"))
+				Eventually(session).Should(Say("Usage: " + removeUsageMatcher))
 			})
 		})
 	})
@@ -186,6 +190,17 @@ var _ = Describe("cf-plex", func() {
 			session, _ := startSession(env, cliPath, "remove-api", "https://api.run.pivotal.io")
 			Eventually(session).Should(Say("Managing APIs is not allowed when CF_PLEX_APIS is set"))
 			Eventually(session).Should(Exit(1))
+		})
+	})
+
+	Context("when no sub-command is specified", func() {
+		It("outputs usage of all commands", func() {
+			session, _ := startSession(env, cliPath)
+			Eventually(session).Should(Say("Usage:"))
+			Eventually(session).Should(Say("cf-plex <cf cli command> [--force]"))
+			Eventually(session).Should(Say(addUsageMatcher))
+			Eventually(session).Should(Say(listUsageMatcher))
+			Eventually(session).Should(Say(removeUsageMatcher))
 		})
 	})
 })

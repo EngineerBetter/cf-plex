@@ -14,9 +14,23 @@ import (
 	"syscall"
 )
 
+var cfUsage = "cf-plex <cf cli command> [--force]"
+var addUsage = "cf-plex add-api <apiUrl> [<username> <password>]"
+var listUsage = "cf-plex list-apis"
+var removeUsage = "cf-plex remove-api <apiUrl>"
+
 func main() {
 	args := os.Args
 	cfPlexHome := getConfigDir()
+
+	if len(args) == 1 {
+		fmt.Println("Usage:")
+		fmt.Println(cfUsage)
+		fmt.Println(addUsage)
+		fmt.Println(listUsage)
+		fmt.Println(removeUsage)
+		os.Exit(1)
+	}
 
 	switch args[1] {
 	case "add-api":
@@ -42,7 +56,7 @@ func main() {
 			runCf(fullPath, []string{"", "api", api})
 			runCf(fullPath, []string{"", "auth", username, password})
 		default:
-			fmt.Println("Usage: cf-plex add-api <apiUrl> [<username> <password>]")
+			fmt.Println("Usage: " + addUsage)
 			os.Exit(1)
 		}
 	case "list-apis":
@@ -57,7 +71,7 @@ func main() {
 		bailIfCfEnvs()
 
 		if len(args) < 3 {
-			fmt.Println("Usage: cf-plex remove-api <apiUrl>")
+			fmt.Println("Usage: " + removeUsage)
 			os.Exit(1)
 		}
 
