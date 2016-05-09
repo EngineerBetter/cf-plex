@@ -109,6 +109,15 @@ var _ = Describe("cf-plex", func() {
 		})
 	})
 
+	Describe("removing an api", func() {
+		Context("when the api is not provided", func() {
+			It("outputs a useful error message", func() {
+				session, _ := startSession(env, cliPath, "remove-api")
+				Eventually(session).Should(Say("usage: cf-plex remove-api <apiUrl>"))
+			})
+		})
+	})
+
 	Describe("running cf commands", func() {
 		It("fails when subprocesses fail", func() {
 			session, _ := Start(CommandWithEnv(env, cliPath, "rubbish"), GinkgoWriter, GinkgoWriter)
