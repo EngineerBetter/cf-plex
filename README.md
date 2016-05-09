@@ -14,7 +14,7 @@ cf-plex add-api https://api.another.com username password
 cf-plex create-org new-org
 ```
 
-## Using
+## Usage
 
 ### Interactive Mode
 
