@@ -87,7 +87,7 @@ var _ = Describe("cf-plex", func() {
 		Context("when the username is absent", func() {
 			It("outputs a useful errror message", func() {
 				session, _ := startSession(env, cliPath, "add-api", "https://api.run.pivotal.io", cfPassword)
-				Eventually(session).Should(Say("usage: cf-plex add-api <apiUrl> \\[<username> <password>\\]"))
+				Eventually(session).Should(Say("Usage: cf-plex add-api <apiUrl> \\[<username> <password>\\]"))
 				Eventually(session).Should(Exit(1))
 			})
 		})
@@ -95,7 +95,7 @@ var _ = Describe("cf-plex", func() {
 		Context("when the password is absent", func() {
 			It("outputs a useful errror message", func() {
 				session, _ := startSession(env, cliPath, "add-api", "https://api.run.pivotal.io", cfUsername)
-				Eventually(session).Should(Say("usage: cf-plex add-api <apiUrl> \\[<username> <password>\\]"))
+				Eventually(session).Should(Say("Usage: cf-plex add-api <apiUrl> \\[<username> <password>\\]"))
 				Eventually(session).Should(Exit(1))
 			})
 		})
@@ -103,7 +103,7 @@ var _ = Describe("cf-plex", func() {
 		Context("when the API is absent", func() {
 			It("outputs a useful errror message", func() {
 				session, _ := startSession(env, cliPath, "add-api", cfUsername, cfPassword)
-				Eventually(session).Should(Say("usage: cf-plex add-api <apiUrl> \\[<username> <password>\\]"))
+				Eventually(session).Should(Say("Usage: cf-plex add-api <apiUrl> \\[<username> <password>\\]"))
 				Eventually(session).Should(Exit(1))
 			})
 		})
@@ -113,7 +113,7 @@ var _ = Describe("cf-plex", func() {
 		Context("when the api is not provided", func() {
 			It("outputs a useful error message", func() {
 				session, _ := startSession(env, cliPath, "remove-api")
-				Eventually(session).Should(Say("usage: cf-plex remove-api <apiUrl>"))
+				Eventually(session).Should(Say("Usage: cf-plex remove-api <apiUrl>"))
 			})
 		})
 	})

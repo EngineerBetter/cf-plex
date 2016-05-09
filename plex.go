@@ -42,7 +42,7 @@ func main() {
 			runCf(fullPath, []string{"", "api", api})
 			runCf(fullPath, []string{"", "auth", username, password})
 		default:
-			fmt.Println("usage: cf-plex add-api <apiUrl> [<username> <password>]")
+			fmt.Println("Usage: cf-plex add-api <apiUrl> [<username> <password>]")
 			os.Exit(1)
 		}
 	case "list-apis":
@@ -57,7 +57,7 @@ func main() {
 		bailIfCfEnvs()
 
 		if len(args) < 3 {
-			fmt.Println("usage: cf-plex remove-api <apiUrl>")
+			fmt.Println("Usage: cf-plex remove-api <apiUrl>")
 			os.Exit(1)
 		}
 
