@@ -154,44 +154,74 @@ var _ = Describe("cf-plex", func() {
 
 	Describe("Specifying APIs via CF_PLEX_APIS", func() {
 		var cfEnvs string
-		BeforeEach(func() {
-			cfEnvs = cfUsername + "^" + cfPassword + ">https://api.run.pivotal.io;" + cfUsername + "^" + cfPassword + ">https://api.eu-gb.bluemix.net"
-			env = append(env, "CF_PLEX_APIS="+cfEnvs)
+
+		Context("when using default separators", func() {
+			BeforeEach(func() {
+				cfEnvs = cfUsername + "^" + cfPassword + ">https://api.run.pivotal.io;" + cfUsername + "^" + cfPassword + ">https://api.eu-gb.bluemix.net"
+				env = append(env, "CF_PLEX_APIS="+cfEnvs)
+			})
+
+			It("Runs commands against APIs in ENV", func() {
+				session, in := startSession(env, cliPath, "delete-org", "does-not-exist")
+				Eventually(session, "5s").Should(Say("Setting api endpoint to https://api.run.pivotal.io...\nOK"))
+				Eventually(session, "5s").Should(Say("Authenticating...\nOK"))
+				Eventually(session, "5s").Should(Say("Setting api endpoint to https://api.eu-gb.bluemix.net"))
+				Eventually(session, "5s").Should(Say("Authenticating...\nOK"))
+				Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.run.pivotal.io"))
+				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+				Eventually(session, "5s").Should(Say("Delete cancelled"))
+
+				Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.eu-gb.bluemix.net"))
+				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+				Eventually(session, "5s").Should(Say("Delete cancelled"))
+				Eventually(session).Should(Exit(0))
+			})
+
+			It("Disallows add-api", func() {
+				session, _ := startSession(env, cliPath, "add-api", "https://api.run.pivotal.io")
+				Eventually(session).Should(Say("Managing APIs is not allowed when CF_PLEX_APIS is set"))
+				Eventually(session).Should(Exit(1))
+			})
+
+			It("Disallows list-apis", func() {
+				session, _ := startSession(env, cliPath, "list-apis")
+				Eventually(session).Should(Say("Managing APIs is not allowed when CF_PLEX_APIS is set"))
+				Eventually(session).Should(Exit(1))
+			})
+
+			It("Disallows remove-api", func() {
+				session, _ := startSession(env, cliPath, "remove-api", "https://api.run.pivotal.io")
+				Eventually(session).Should(Say("Managing APIs is not allowed when CF_PLEX_APIS is set"))
+				Eventually(session).Should(Exit(1))
+			})
 		})
 
-		It("Runs commands against APIs in ENV", func() {
-			session, in := startSession(env, cliPath, "delete-org", "does-not-exist")
-			Eventually(session, "5s").Should(Say("Setting api endpoint to https://api.run.pivotal.io...\nOK"))
-			Eventually(session, "5s").Should(Say("Authenticating...\nOK"))
-			Eventually(session, "5s").Should(Say("Setting api endpoint to https://api.eu-gb.bluemix.net"))
-			Eventually(session, "5s").Should(Say("Authenticating...\nOK"))
-			Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.run.pivotal.io"))
-			confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
-			Eventually(session, "5s").Should(Say("Delete cancelled"))
+		Context("when custom separators are defined", func() {
+			BeforeEach(func() {
+				cfEnvs = cfUsername + "-foo-" + cfPassword + "_https://api.run.pivotal.io|" + cfUsername + "-foo-" + cfPassword + "_https://api.eu-gb.bluemix.net"
+				env = append(env, "CF_PLEX_SEP_TRIPLE=|")
+				env = append(env, "CF_PLEX_SEP_CREDS_API=_")
+				env = append(env, "CF_PLEX_SEP_USER_PASS=-foo-")
+				env = append(env, "CF_PLEX_APIS="+cfEnvs)
+			})
 
-			Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.eu-gb.bluemix.net"))
-			confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
-			Eventually(session, "5s").Should(Say("Delete cancelled"))
-			Eventually(session).Should(Exit(0))
+			It("still works", func() {
+				session, in := startSession(env, cliPath, "delete-org", "does-not-exist")
+				Eventually(session, "5s").Should(Say("Setting api endpoint to https://api.run.pivotal.io...\nOK"))
+				Eventually(session, "5s").Should(Say("Authenticating...\nOK"))
+				Eventually(session, "5s").Should(Say("Setting api endpoint to https://api.eu-gb.bluemix.net"))
+				Eventually(session, "5s").Should(Say("Authenticating...\nOK"))
+				Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.run.pivotal.io"))
+				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+				Eventually(session, "5s").Should(Say("Delete cancelled"))
+
+				Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.eu-gb.bluemix.net"))
+				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+				Eventually(session, "5s").Should(Say("Delete cancelled"))
+				Eventually(session).Should(Exit(0))
+			})
 		})
 
-		It("Disallows add-api", func() {
-			session, _ := startSession(env, cliPath, "add-api", "https://api.run.pivotal.io")
-			Eventually(session).Should(Say("Managing APIs is not allowed when CF_PLEX_APIS is set"))
-			Eventually(session).Should(Exit(1))
-		})
-
-		It("Disallows list-apis", func() {
-			session, _ := startSession(env, cliPath, "list-apis")
-			Eventually(session).Should(Say("Managing APIs is not allowed when CF_PLEX_APIS is set"))
-			Eventually(session).Should(Exit(1))
-		})
-
-		It("Disallows remove-api", func() {
-			session, _ := startSession(env, cliPath, "remove-api", "https://api.run.pivotal.io")
-			Eventually(session).Should(Say("Managing APIs is not allowed when CF_PLEX_APIS is set"))
-			Eventually(session).Should(Exit(1))
-		})
 	})
 
 	Describe("asking for help", func() {

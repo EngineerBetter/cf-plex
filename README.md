@@ -34,6 +34,12 @@ export CF_PLEX_APIS="username^password>https://api.some.com;username^password>ht
 cf-plex create-org new-org
 ```
 
+If your credentials contain the separators used in the example above, you can specify your own as environment variables:
+
+* `CF_PLEX_SEP_TRIPLE` for the separator between the three items that identify a Cloud Foundry
+* `CF_PLEX_SEP_CREDS_API` for the separator between the user/pass and the API URL
+* `CF_PLEX_SEP_USER_PASS` for the separator betwen the username and the password
+
 ### Ignoring Errors
 
 `cf-plex` will fail fast if the `cf` CLI returns a non-zero exit code against any API. To override this behaviour (ignore the error and continue running the command) specify `--force`:

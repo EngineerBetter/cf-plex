@@ -82,12 +82,16 @@ func main() {
 	default:
 		var apiDirs []string
 
-		cfEnvs := getCfEnvs()
+		cfEnvs := getEnvVarValue("CF_PLEX_APIS", "")
 		if cfEnvs != "" {
 			tmpRoot, err := ioutil.TempDir("", "plex")
 			bailIfB0rked(err)
 
-			coords, err := env.GetCoordinates(cfEnvs)
+			tripleSeparator := getEnvVarValue("CF_PLEX_SEP_TRIPLE", env.PlexTripleSeparator)
+			credApiSeparator := getEnvVarValue("CF_PLEX_SEP_CREDS_API", env.PlexCredApiSeparator)
+			userPassSeparator := getEnvVarValue("CF_PLEX_SEP_USER_PASS", env.PlexUserPassSeparator)
+
+			coords, err := env.GetCoordinates(cfEnvs, tripleSeparator, credApiSeparator, userPassSeparator)
 			bailIfB0rked(err)
 
 			for _, coord := range coords {
@@ -169,18 +173,18 @@ func getConfigDir() (configDir string) {
 	return
 }
 
-func getCfEnvs() (envs string) {
+func getEnvVarValue(key, dfault string) (envs string) {
 	env := os.Environ()
 	for _, envVar := range env {
-		if strings.HasPrefix(envVar, "CF_PLEX_APIS=") {
-			return strings.Replace(envVar, "CF_PLEX_APIS=", "", -1)
+		if strings.HasPrefix(envVar, key+"=") {
+			return strings.Replace(envVar, key+"=", "", -1)
 		}
 	}
-	return
+	return dfault
 }
 
 func bailIfCfEnvs() {
-	if getCfEnvs() != "" {
+	if getEnvVarValue("CF_PLEX_APIS", "") != "" {
 		fmt.Println("Managing APIs is not allowed when CF_PLEX_APIS is set")
 		os.Exit(1)
 	}
