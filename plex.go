@@ -135,14 +135,6 @@ func CommandWithEnv(env []string, args ...string) *exec.Cmd {
 	return cmd
 }
 
-func Output(cmd *exec.Cmd) string {
-	bytes, err := cmd.Output()
-	if err != nil {
-		os.Exit(1)
-	}
-	return string(bytes)
-}
-
 func getConfigDir() (configDir string) {
 	configDir = os.Getenv("CF_PLEX_HOME")
 	if configDir == "" {
