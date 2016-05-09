@@ -8,7 +8,7 @@ Runs `cf` commands against multiple Cloud Foundry instances.
 
 Create `new-org` on two Cloud Foundry instances:
 
-```
+```bash
 cf-plex add-api https://api.some.com username password
 cf-plex add-api https://api.another.com username password
 cf-plex create-org new-org
@@ -29,7 +29,7 @@ cf-plex create-org new-org
 
 Specify API details in `CF_PLEX_APIS` to avoid manual credential management:
 
-```
+```bash
 export CF_PLEX_APIS="username^password>https://api.some.com;username^password>https://api.another.com"
 cf-plex create-org new-org
 ```
@@ -44,7 +44,7 @@ If your credentials contain the separators used in the example above, you can sp
 
 `cf-plex` will fail fast if the `cf` CLI returns a non-zero exit code against any API. To override this behaviour (ignore the error and continue running the command) specify `--force`:
 
-```
+```bash
 # Will continue even if it fails against one API
 cf-plex delete org might-not-exist --force
 ```
@@ -53,8 +53,8 @@ cf-plex delete org might-not-exist --force
 
 Currently depends on having an account on Pivotal Web Services and BlueMix.
 
-```
+```bash
 CF_USERNAME=testing@engineerbetter.com \
 CF_PASSWORD=lookitup \
-go test ./...
+go test -v ./...
 ```
