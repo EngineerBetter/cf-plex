@@ -27,10 +27,10 @@ cf-plex create-org new-org
 
 ### Batch Mode
 
-Specify API details in `CF_ENVS` to avoid manual credential management:
+Specify API details in `CF_PLEX_APIS` to avoid manual credential management:
 
 ```
-export CF_ENVS="username^password>https://api.some.com;username^password>https://api.another.com"
+export CF_PLEX_APIS="username^password>https://api.some.com;username^password>https://api.another.com"
 cf-plex create-org new-org
 ```
 

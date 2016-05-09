@@ -155,8 +155,8 @@ func getConfigDir() (configDir string) {
 func getCfEnvs() (envs string) {
 	env := os.Environ()
 	for _, envVar := range env {
-		if strings.HasPrefix(envVar, "CF_ENVS=") {
-			return strings.Replace(envVar, "CF_ENVS=", "", -1)
+		if strings.HasPrefix(envVar, "CF_PLEX_APIS=") {
+			return strings.Replace(envVar, "CF_PLEX_APIS=", "", -1)
 		}
 	}
 	return
@@ -164,7 +164,7 @@ func getCfEnvs() (envs string) {
 
 func bailIfCfEnvs() {
 	if getCfEnvs() != "" {
-		fmt.Println("Managing APIs is not allowed when CF_ENVS is set")
+		fmt.Println("Managing APIs is not allowed when CF_PLEX_APIS is set")
 		os.Exit(1)
 	}
 }

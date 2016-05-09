@@ -138,11 +138,11 @@ var _ = Describe("cf-plex", func() {
 		})
 	})
 
-	Describe("Specifying APIs via CF_ENVs", func() {
+	Describe("Specifying APIs via CF_PLEX_APIS", func() {
 		var cfEnvs string
 		BeforeEach(func() {
 			cfEnvs = cfUsername + "^" + cfPassword + ">https://api.run.pivotal.io;" + cfUsername + "^" + cfPassword + ">https://api.eu-gb.bluemix.net"
-			env = append(env, "CF_ENVS="+cfEnvs)
+			env = append(env, "CF_PLEX_APIS="+cfEnvs)
 		})
 
 		It("Runs commands against APIs in ENV", func() {
@@ -163,19 +163,19 @@ var _ = Describe("cf-plex", func() {
 
 		It("Disallows add-api", func() {
 			session, _ := startSession(env, cliPath, "add-api", "https://api.run.pivotal.io")
-			Eventually(session).Should(Say("Managing APIs is not allowed when CF_ENVS is set"))
+			Eventually(session).Should(Say("Managing APIs is not allowed when CF_PLEX_APIS is set"))
 			Eventually(session).Should(Exit(1))
 		})
 
 		It("Disallows list-apis", func() {
 			session, _ := startSession(env, cliPath, "list-apis")
-			Eventually(session).Should(Say("Managing APIs is not allowed when CF_ENVS is set"))
+			Eventually(session).Should(Say("Managing APIs is not allowed when CF_PLEX_APIS is set"))
 			Eventually(session).Should(Exit(1))
 		})
 
 		It("Disallows remove-api", func() {
 			session, _ := startSession(env, cliPath, "remove-api", "https://api.run.pivotal.io")
-			Eventually(session).Should(Say("Managing APIs is not allowed when CF_ENVS is set"))
+			Eventually(session).Should(Say("Managing APIs is not allowed when CF_PLEX_APIS is set"))
 			Eventually(session).Should(Exit(1))
 		})
 	})
