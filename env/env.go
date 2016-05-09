@@ -11,6 +11,9 @@ type Coord struct {
 	Api      string
 }
 
+const PlexCredApiSeparator = ">"
+const PlexUserPassSeparator = "^"
+
 func GetCoordinates(cfEnvs string) ([]Coord, error) {
 	var coords []Coord
 	triples := GetTriples(cfEnvs)
@@ -29,11 +32,11 @@ func GetTriples(cfEnvs string) []string {
 }
 
 func GetCoordinate(triple string) (coord Coord, err error) {
-	if strings.Count(triple, "@") != 1 || strings.Count(triple, ":") != 1 {
+	if strings.Count(triple, PlexCredApiSeparator) != 1 || strings.Count(triple, PlexUserPassSeparator) != 1 {
 		return coord, errors.New(triple + " is invalid")
 	}
-	credsAndApi := strings.Split(triple, "@")
-	creds := strings.Split(credsAndApi[0], ":")
+	credsAndApi := strings.Split(triple, PlexCredApiSeparator)
+	creds := strings.Split(credsAndApi[0], PlexUserPassSeparator)
 	username := creds[0]
 	password := creds[1]
 	api := credsAndApi[1]

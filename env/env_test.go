@@ -9,7 +9,7 @@ import (
 var _ = Describe("env", func() {
 	Describe("getCoordinate", func() {
 		It("returns coordinate for an API", func() {
-			cfEnv := "username:password@api.com"
+			cfEnv := "username^password>api.com"
 			coords, err := GetCoordinate(cfEnv)
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(coords.Username).Should(Equal("username"))
@@ -18,25 +18,25 @@ var _ = Describe("env", func() {
 		})
 
 		It("returns an error for invalid values", func() {
-			cfEnv := "username:password"
+			cfEnv := "username^password"
 			_, err := GetCoordinate(cfEnv)
 			Ω(err).Should(HaveOccurred())
-			Ω(err).Should(MatchError("username:password is invalid"))
+			Ω(err).Should(MatchError("username^password is invalid"))
 		})
 	})
 
 	Describe("getTriples", func() {
 		It("returns coordinates for an API", func() {
-			cfEnvs := "user1:pass1@api1.com;user2:pass2@api2.com"
+			cfEnvs := "user1^pass1>api1.com;user2^pass2>api2.com"
 			triples := GetTriples(cfEnvs)
-			Ω(triples[0]).Should(Equal("user1:pass1@api1.com"))
-			Ω(triples[1]).Should(Equal("user2:pass2@api2.com"))
+			Ω(triples[0]).Should(Equal("user1^pass1>api1.com"))
+			Ω(triples[1]).Should(Equal("user2^pass2>api2.com"))
 		})
 	})
 
 	Describe("GetCoordinates", func() {
 		It("returns coordinates for many APIs", func() {
-			cfEnvs := "user1:pass1@api1.com;user2:pass2@api2.com"
+			cfEnvs := "user1^pass1>api1.com;user2^pass2>api2.com"
 			coords, err := GetCoordinates(cfEnvs)
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(coords[0]).Should(Equal(Coord{Username: "user1", Password: "pass1", Api: "api1.com"}))
@@ -44,10 +44,10 @@ var _ = Describe("env", func() {
 		})
 
 		It("returns an error for invalid values", func() {
-			cfEnv := "username:password@api.com;user:pass"
+			cfEnv := "username^password>api.com;user^pass"
 			_, err := GetCoordinates(cfEnv)
 			Ω(err).Should(HaveOccurred())
-			Ω(err).Should(MatchError("user:pass is invalid"))
+			Ω(err).Should(MatchError("user^pass is invalid"))
 		})
 	})
 })

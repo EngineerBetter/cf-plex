@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/EngineerBetter/cf-plex/env"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/user"
@@ -61,11 +63,34 @@ func main() {
 		bailIfB0rked(err)
 		fmt.Println("Removed " + api)
 	default:
-		apiDirs, err := getApiDirs(cfPlexHome)
-		bailIfB0rked(err)
-		if len(apiDirs) == 0 {
-			os.Stderr.WriteString("No APIs have been set")
-			os.Exit(1)
+		var apiDirs []string
+
+		cfEnvs := getCfEnvs()
+		if cfEnvs != "" {
+			tmpRoot, err := ioutil.TempDir("", "plex")
+			bailIfB0rked(err)
+
+			coords, err := env.GetCoordinates(cfEnvs)
+			bailIfB0rked(err)
+
+			for _, coord := range coords {
+				apiSanitised := sanitiseApi(coord.Api)
+				apiDir := filepath.Join(tmpRoot, apiSanitised)
+				os.MkdirAll(apiDir, 0700)
+				defer os.RemoveAll(apiDir)
+				apiDirs = append(apiDirs, apiDir)
+
+				runCf(apiDir, []string{"", "api", coord.Api})
+				runCf(apiDir, []string{"", "auth", coord.Username, coord.Password})
+			}
+		} else {
+			var err error
+			apiDirs, err = getApiDirs(cfPlexHome)
+			bailIfB0rked(err)
+			if len(apiDirs) == 0 {
+				os.Stderr.WriteString("No APIs have been set")
+				os.Exit(1)
+			}
 		}
 
 		var force bool
@@ -127,13 +152,20 @@ func getConfigDir() (configDir string) {
 	return
 }
 
-func bailIfCfEnvs() {
+func getCfEnvs() (envs string) {
 	env := os.Environ()
 	for _, envVar := range env {
-		if strings.HasPrefix(envVar, "CF_ENVS") {
-			fmt.Println("Managing APIs is not allowed when CF_ENVS is set")
-			os.Exit(1)
+		if strings.HasPrefix(envVar, "CF_ENVS=") {
+			return strings.Replace(envVar, "CF_ENVS=", "", -1)
 		}
+	}
+	return
+}
+
+func bailIfCfEnvs() {
+	if getCfEnvs() != "" {
+		fmt.Println("Managing APIs is not allowed when CF_ENVS is set")
+		os.Exit(1)
 	}
 }
 
