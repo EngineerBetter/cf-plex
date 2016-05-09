@@ -82,14 +82,14 @@ func main() {
 	default:
 		var apiDirs []string
 
-		cfEnvs := getEnvVarValue("CF_PLEX_APIS", "")
+		cfEnvs := env.GetEnvVarValue("CF_PLEX_APIS", "")
 		if cfEnvs != "" {
 			tmpRoot, err := ioutil.TempDir("", "plex")
 			bailIfB0rked(err)
 
-			tripleSeparator := getEnvVarValue("CF_PLEX_SEP_TRIPLE", env.PlexTripleSeparator)
-			credApiSeparator := getEnvVarValue("CF_PLEX_SEP_CREDS_API", env.PlexCredApiSeparator)
-			userPassSeparator := getEnvVarValue("CF_PLEX_SEP_USER_PASS", env.PlexUserPassSeparator)
+			tripleSeparator := env.GetEnvVarValue("CF_PLEX_SEP_TRIPLE", env.PlexTripleSeparator)
+			credApiSeparator := env.GetEnvVarValue("CF_PLEX_SEP_CREDS_API", env.PlexCredApiSeparator)
+			userPassSeparator := env.GetEnvVarValue("CF_PLEX_SEP_USER_PASS", env.PlexUserPassSeparator)
 
 			coords, err := env.GetCoordinates(cfEnvs, tripleSeparator, credApiSeparator, userPassSeparator)
 			bailIfB0rked(err)
@@ -129,25 +129,6 @@ func main() {
 	}
 }
 
-func SetEnv(key, value string, env []string) []string {
-	var indexOfKey int
-	var found bool
-
-	for index, pair := range env {
-		if strings.HasPrefix(pair, key+"=") {
-			found = true
-			indexOfKey = index
-		}
-	}
-
-	env = append(env[:])
-	if found {
-		env = append(env[:indexOfKey], env[indexOfKey+1:]...)
-	}
-
-	return append(env, key+"="+value)
-}
-
 func CommandWithEnv(env []string, args ...string) *exec.Cmd {
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Env = env
@@ -173,18 +154,8 @@ func getConfigDir() (configDir string) {
 	return
 }
 
-func getEnvVarValue(key, dfault string) (envs string) {
-	env := os.Environ()
-	for _, envVar := range env {
-		if strings.HasPrefix(envVar, key+"=") {
-			return strings.Replace(envVar, key+"=", "", -1)
-		}
-	}
-	return dfault
-}
-
 func bailIfCfEnvs() {
-	if getEnvVarValue("CF_PLEX_APIS", "") != "" {
+	if env.GetEnvVarValue("CF_PLEX_APIS", "") != "" {
 		fmt.Println("Managing APIs is not allowed when CF_PLEX_APIS is set")
 		os.Exit(1)
 	}
@@ -217,7 +188,7 @@ func getApiDirs(configDir string) ([]string, error) {
 
 func runCf(cfHome string, args []string) int {
 	args[0] = "cf"
-	env := SetEnv("CF_HOME", cfHome, os.Environ())
+	env := env.SetEnv("CF_HOME", cfHome, os.Environ())
 	cmd := CommandWithEnv(env, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
