@@ -82,14 +82,14 @@ func main() {
 	default:
 		var apiDirs []string
 
-		cfEnvs := env.GetEnvVarValue("CF_PLEX_APIS", "")
+		cfEnvs := env.Get("CF_PLEX_APIS", "")
 		if cfEnvs != "" {
 			tmpRoot, err := ioutil.TempDir("", "plex")
 			bailIfB0rked(err)
 
-			tripleSeparator := env.GetEnvVarValue("CF_PLEX_SEP_TRIPLE", env.PlexTripleSeparator)
-			credApiSeparator := env.GetEnvVarValue("CF_PLEX_SEP_CREDS_API", env.PlexCredApiSeparator)
-			userPassSeparator := env.GetEnvVarValue("CF_PLEX_SEP_USER_PASS", env.PlexUserPassSeparator)
+			tripleSeparator := env.Get("CF_PLEX_SEP_TRIPLE", env.PlexTripleSeparator)
+			credApiSeparator := env.Get("CF_PLEX_SEP_CREDS_API", env.PlexCredApiSeparator)
+			userPassSeparator := env.Get("CF_PLEX_SEP_USER_PASS", env.PlexUserPassSeparator)
 
 			coords, err := env.GetCoordinates(cfEnvs, tripleSeparator, credApiSeparator, userPassSeparator)
 			bailIfB0rked(err)
@@ -155,7 +155,7 @@ func getConfigDir() (configDir string) {
 }
 
 func bailIfCfEnvs() {
-	if env.GetEnvVarValue("CF_PLEX_APIS", "") != "" {
+	if env.Get("CF_PLEX_APIS", "") != "" {
 		fmt.Println("Managing APIs is not allowed when CF_PLEX_APIS is set")
 		os.Exit(1)
 	}
@@ -188,7 +188,7 @@ func getApiDirs(configDir string) ([]string, error) {
 
 func runCf(cfHome string, args []string) int {
 	args[0] = "cf"
-	env := env.SetEnv("CF_HOME", cfHome, os.Environ())
+	env := env.Set("CF_HOME", cfHome, os.Environ())
 	cmd := CommandWithEnv(env, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

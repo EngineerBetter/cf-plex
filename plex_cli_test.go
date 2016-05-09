@@ -40,7 +40,7 @@ var _ = Describe("cf-plex", func() {
 		cfPassword = os.Getenv("CF_PASSWORD")
 		Ω(cfPassword).ShouldNot(BeZero(), "CF_PASSWORD env var must be set")
 
-		envVars = env.SetEnv("CF_PLEX_HOME", tmpDir, os.Environ())
+		envVars = env.Set("CF_PLEX_HOME", tmpDir, os.Environ())
 		cliPath, err = Build("github.com/EngineerBetter/cf-plex")
 		Ω(err).ShouldNot(HaveOccurred())
 	})

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func SetEnv(key, value string, env []string) []string {
+func Set(key, value string, env []string) []string {
 	var indexOfKey int
 	var found bool
 
@@ -24,7 +24,7 @@ func SetEnv(key, value string, env []string) []string {
 	return append(env, key+"="+value)
 }
 
-func GetEnvVarValue(key, dfault string) (envs string) {
+func Get(key, dfault string) (envs string) {
 	env := os.Environ()
 	for _, envVar := range env {
 		if strings.HasPrefix(envVar, key+"=") {
