@@ -162,7 +162,7 @@ var _ = Describe("cf-plex", func() {
 				envVars = append(envVars, "CF_PLEX_APIS="+cfEnvs)
 			})
 
-			It("Runs commands against APIs in ENV", func() {
+			It("Runs commands against APIs in ENV, logging in only once", func() {
 				session, in := startSession(envVars, cliPath, "delete-org", "does-not-exist")
 				Eventually(session, "5s").Should(Say("Setting api endpoint to https://api.run.pivotal.io...\nOK"))
 				Eventually(session, "5s").Should(Say("Authenticating...\nOK"))
@@ -176,6 +176,10 @@ var _ = Describe("cf-plex", func() {
 				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
 				Eventually(session, "5s").Should(Say("Delete cancelled"))
 				Eventually(session).Should(Exit(0))
+
+				session, _ = startSession(envVars, cliPath, "apps")
+				Ω(session.Wait("5s").Out.Contents()).ShouldNot(ContainSubstring("Not logged in"))
+				Ω(session.Wait("5s").Out.Contents()).ShouldNot(ContainSubstring("Authenticating..."))
 			})
 
 			It("Disallows add-api", func() {

@@ -1,9 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/EngineerBetter/cf-plex/env"
-	"io/ioutil"
+	"io"
 	"os"
 	"os/exec"
 	"os/user"
@@ -84,9 +85,6 @@ func main() {
 
 		cfEnvs := env.Get("CF_PLEX_APIS", "")
 		if cfEnvs != "" {
-			tmpRoot, err := ioutil.TempDir("", "plex")
-			bailIfB0rked(err)
-
 			tripleSeparator := env.Get("CF_PLEX_SEP_TRIPLE", env.PlexTripleSeparator)
 			credApiSeparator := env.Get("CF_PLEX_SEP_CREDS_API", env.PlexCredApiSeparator)
 			userPassSeparator := env.Get("CF_PLEX_SEP_USER_PASS", env.PlexUserPassSeparator)
@@ -96,13 +94,14 @@ func main() {
 
 			for _, coord := range coords {
 				apiSanitised := sanitiseApi(coord.Api)
-				apiDir := filepath.Join(tmpRoot, apiSanitised)
+				apiDir := filepath.Join(cfPlexHome, "batch", apiSanitised)
 				os.MkdirAll(apiDir, 0700)
-				defer os.RemoveAll(apiDir)
 				apiDirs = append(apiDirs, apiDir)
 
-				runCf(apiDir, []string{"", "api", coord.Api})
-				runCf(apiDir, []string{"", "auth", coord.Username, coord.Password})
+				_, output := runCf(apiDir, []string{"", "api", coord.Api})
+				if strings.Contains(output, "Not logged in") {
+					runCf(apiDir, []string{"", "auth", coord.Username, coord.Password})
+				}
 			}
 		} else {
 			var err error
@@ -121,7 +120,7 @@ func main() {
 		}
 
 		for _, apiDir := range apiDirs {
-			exitCode := runCf(apiDir, args)
+			exitCode, _ := runCf(apiDir, args)
 			if exitCode != 0 && !force {
 				os.Exit(exitCode)
 			}
@@ -178,17 +177,22 @@ func getApiDirs(configDir string) ([]string, error) {
 	return names, nil
 }
 
-func runCf(cfHome string, args []string) int {
+func runCf(cfHome string, args []string) (int, string) {
 	args[0] = "cf"
 	env := env.Set("CF_HOME", cfHome, os.Environ())
 	cmd := CommandWithEnv(env, args...)
+
+	var buffer bytes.Buffer
+	multiWriter := io.MultiWriter(os.Stdout, &buffer)
+
 	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
+	cmd.Stdout = multiWriter
 	cmd.Stderr = os.Stderr
+
 	fmt.Printf("Running '%s' on %s\n", strings.Join(args, " "), path.Base(cfHome))
 	cmd.Start()
 	err := cmd.Wait()
-	return determineExitCode(cmd, err)
+	return determineExitCode(cmd, err), buffer.String()
 }
 
 func determineExitCode(cmd *exec.Cmd, err error) (exitCode int) {

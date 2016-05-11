@@ -34,6 +34,8 @@ export CF_PLEX_APIS="username^password>https://api.some.com;username^password>ht
 cf-plex create-org new-org
 ```
 
+State for batch operations is stored separately to interactive mode: that is, each API's `CF_HOME` is stored as a subdirectory `$HOME/$CF_PLEX_HOME/batch`. 
+
 If your credentials contain the separators used in the example above, you can specify your own as environment variables:
 
 * `CF_PLEX_SEP_TRIPLE` for the separator between the three items that identify a Cloud Foundry
