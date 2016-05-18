@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	. "github.com/EngineerBetter/cf-plex"
+	"github.com/EngineerBetter/cf-plex/clipr"
 	"github.com/EngineerBetter/cf-plex/env"
-	"github.com/EngineerBetter/cli-plugin-echo/clipr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gbytes"
@@ -101,7 +101,7 @@ var _ = Describe("cf-plex", func() {
 
 			server := httptest.NewServer(nil)
 			defer server.Close()
-			clipr.Configure(server.Config, server.URL, "fixtures/osx/echo")
+			clipr.Configure(server.Config, server.URL, "clipr/fixtures/osx/echo")
 
 			session, _ := startSession(envVars, "cf", "add-plugin-repo", "test", server.URL)
 			Eventually(session).Should(Say("added as 'test'"))
