@@ -51,6 +51,10 @@ If your credentials contain the separators used in the example above, you can sp
 cf-plex delete org might-not-exist --force
 ```
 
+### Plugins
+
+CF CLI plugins are managed with an orthogonal home directory of `CF_PLUGIN_HOME`. `cf-plex` doesn't do anything with this, so all your usual plugins will be available. If you have a use case that requires plugin isolation, please raise an issue.
+
 ## Testing
 
 Currently depends on having an account on Pivotal Web Services and BlueMix.
@@ -60,3 +64,7 @@ CF_USERNAME=testing@engineerbetter.com \
 CF_PASSWORD=lookitup \
 go test -v ./...
 ```
+
+## Acknowledgements
+
+In order to prove that plugin behaviour is unaffected by `cf-plex`, [Simon Leung's `cli-plugin-echo`](https://github.com/simonleung8/cli-plugin-echo) is vendored as a test fixture. 
