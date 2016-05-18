@@ -7,6 +7,10 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/EngineerBetter/cli-plugin-echo/clipr",
+			"Rev": "4e1921dd425066fa4f83e23286d57b83bb972a94"
+		},
+		{
 			"ImportPath": "github.com/onsi/ginkgo",
 			"Comment": "v1.2.0-46-gc3a655f",
 			"Rev": "c3a655f9b37a2207fa39721b078b3173ee9218d6"

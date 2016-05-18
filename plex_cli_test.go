@@ -3,18 +3,20 @@ package main_test
 import (
 	"io"
 	"io/ioutil"
+	"net/http/httptest"
 	"os"
 	"strings"
-	"time"
 
 	. "github.com/EngineerBetter/cf-plex"
 	"github.com/EngineerBetter/cf-plex/env"
+	"github.com/EngineerBetter/cli-plugin-echo/clipr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gbytes"
 	. "github.com/onsi/gomega/gexec"
 )
 
+var timeout = "10s"
 var addUsageMatcher = "cf-plex add-api <apiUrl> \\[<username> <password>\\]"
 var listUsageMatcher = "cf-plex list-apis"
 var removeUsageMatcher = "cf-plex remove-api <apiUrl>"
@@ -66,11 +68,11 @@ var _ = Describe("cf-plex", func() {
 		session, in := startSession(envVars, cliPath, "delete-org", "does-not-exist")
 		Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.eu-gb.bluemix.net"))
 		confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
-		Eventually(session, "5s").Should(Say("Delete cancelled"))
+		Eventually(session, timeout).Should(Say("Delete cancelled"))
 
 		Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.run.pivotal.io"))
 		confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
-		Eventually(session, "5s").Should(Say("Delete cancelled"))
+		Eventually(session, timeout).Should(Say("Delete cancelled"))
 		Eventually(session).Should(Exit(0))
 
 		removeApi("https://api.run.pivotal.io", envVars, cliPath)
@@ -80,13 +82,50 @@ var _ = Describe("cf-plex", func() {
 		Eventually(session.Err).Should(Say("No APIs have been set"))
 	})
 
+	Describe("plugin availability", func() {
+		var tmpCfHome string
+		var err error
+
+		BeforeEach(func() {
+			tmpCfHome, err = ioutil.TempDir("", "plex.cf")
+			Ω(err).ShouldNot(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			Ω(os.RemoveAll(tmpCfHome)).Should(Succeed())
+		})
+
+		It("can use existing plugins", func() {
+			envVars = env.Set("CF_PLUGIN_HOME", tmpCfHome, os.Environ())
+			envVars = env.Set("CF_HOME", tmpCfHome, envVars)
+
+			server := httptest.NewServer(nil)
+			defer server.Close()
+			clipr.Configure(server.Config, server.URL, "fixtures/osx/echo")
+
+			session, _ := startSession(envVars, "cf", "add-plugin-repo", "test", server.URL)
+			Eventually(session).Should(Say("added as 'test'"))
+			session, _ = startSession(envVars, "cf", "install-plugin", "echo", "-r", "test")
+			Eventually(session).Should(Say("Plugin EchoDemo v0.1.4 successfully installed"))
+
+			addApi("https://api.run.pivotal.io", cfUsername, cfPassword, envVars, cliPath)
+			addApi("https://api.eu-gb.bluemix.net", cfUsername, cfPassword, envVars, cliPath)
+
+			session, _ = startSession(envVars, cliPath, "echo", "foobar")
+			Eventually(session).Should(Say("Running 'cf echo foobar' on https___api.eu-gb.bluemix.net"))
+			Eventually(session).Should(Say("foobar"))
+			Eventually(session).Should(Say("Running 'cf echo foobar' on https___api.run.pivotal.io"))
+			Eventually(session).Should(Say("foobar"))
+		})
+	})
+
 	Describe("adding apis", func() {
 		Context("when the username and password are absent", func() {
 			It("assumes the user wants interactive login", func() {
 				session, in := startSession(envVars, cliPath, "add-api", "https://api.run.pivotal.io")
 				confirm("Email>", cfUsername, session, in)
 				confirm("Password>", cfPassword, session, in)
-				Eventually(session, "5s").Should(Say("Authenticating...\nOK"))
+				Eventually(session, timeout).Should(Say("Authenticating...\nOK"))
 			})
 		})
 
@@ -146,7 +185,7 @@ var _ = Describe("cf-plex", func() {
 				addApi("https://api.eu-gb.bluemix.net", cfUsername, cfPassword, envVars, cliPath)
 				// BlueMix has org named after user. Neither public CF allows us to create orgs
 				session, _ := startSession(envVars, cliPath, "target", "-o", "testing@engineerbetter.com", "--force")
-				session.Wait("5s")
+				session.Wait(timeout)
 				output := string(session.Buffer().Contents())
 				Ω(strings.Count(output, "FAILED")).Should(BeNumerically("==", 1))
 			})
@@ -164,22 +203,22 @@ var _ = Describe("cf-plex", func() {
 
 			It("Runs commands against APIs in ENV, logging in only once", func() {
 				session, in := startSession(envVars, cliPath, "delete-org", "does-not-exist")
-				Eventually(session, "5s").Should(Say("Setting api endpoint to https://api.run.pivotal.io...\nOK"))
-				Eventually(session, "5s").Should(Say("Authenticating...\nOK"))
-				Eventually(session, "5s").Should(Say("Setting api endpoint to https://api.eu-gb.bluemix.net"))
-				Eventually(session, "5s").Should(Say("Authenticating...\nOK"))
+				Eventually(session, timeout).Should(Say("Setting api endpoint to https://api.run.pivotal.io...\nOK"))
+				Eventually(session, timeout).Should(Say("Authenticating...\nOK"))
+				Eventually(session, timeout).Should(Say("Setting api endpoint to https://api.eu-gb.bluemix.net"))
+				Eventually(session, timeout).Should(Say("Authenticating...\nOK"))
 				Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.run.pivotal.io"))
 				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
-				Eventually(session, "5s").Should(Say("Delete cancelled"))
+				Eventually(session, timeout).Should(Say("Delete cancelled"))
 
 				Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.eu-gb.bluemix.net"))
 				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
-				Eventually(session, "5s").Should(Say("Delete cancelled"))
+				Eventually(session, timeout).Should(Say("Delete cancelled"))
 				Eventually(session).Should(Exit(0))
 
 				session, _ = startSession(envVars, cliPath, "apps")
-				Ω(session.Wait("5s").Out.Contents()).ShouldNot(ContainSubstring("Not logged in"))
-				Ω(session.Wait("5s").Out.Contents()).ShouldNot(ContainSubstring("Authenticating..."))
+				Ω(session.Wait(timeout).Out.Contents()).ShouldNot(ContainSubstring("Not logged in"))
+				Ω(session.Wait(timeout).Out.Contents()).ShouldNot(ContainSubstring("Authenticating..."))
 			})
 
 			It("Disallows add-api", func() {
@@ -212,17 +251,17 @@ var _ = Describe("cf-plex", func() {
 
 			It("still works", func() {
 				session, in := startSession(envVars, cliPath, "delete-org", "does-not-exist")
-				Eventually(session, "5s").Should(Say("Setting api endpoint to https://api.run.pivotal.io...\nOK"))
-				Eventually(session, "5s").Should(Say("Authenticating...\nOK"))
-				Eventually(session, "5s").Should(Say("Setting api endpoint to https://api.eu-gb.bluemix.net"))
-				Eventually(session, "5s").Should(Say("Authenticating...\nOK"))
+				Eventually(session, timeout).Should(Say("Setting api endpoint to https://api.run.pivotal.io...\nOK"))
+				Eventually(session, timeout).Should(Say("Authenticating...\nOK"))
+				Eventually(session, timeout).Should(Say("Setting api endpoint to https://api.eu-gb.bluemix.net"))
+				Eventually(session, timeout).Should(Say("Authenticating...\nOK"))
 				Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.run.pivotal.io"))
 				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
-				Eventually(session, "5s").Should(Say("Delete cancelled"))
+				Eventually(session, timeout).Should(Say("Delete cancelled"))
 
 				Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.eu-gb.bluemix.net"))
 				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
-				Eventually(session, "5s").Should(Say("Delete cancelled"))
+				Eventually(session, timeout).Should(Say("Delete cancelled"))
 				Eventually(session).Should(Exit(0))
 			})
 		})
@@ -255,7 +294,7 @@ func startSession(envVars []string, args ...string) (*Session, io.Writer) {
 
 func addApi(api, cfUsername, cfPassword string, envVars []string, cliPath string) {
 	session, _ := startSession(envVars, cliPath, "add-api", api, cfUsername, cfPassword)
-	session.Wait("5s")
+	session.Wait(timeout)
 	Ω(session.Out).Should(Say("Setting api endpoint to " + api + "...\nOK"))
 	Ω(session.Out).Should(Say("Authenticating...\nOK"))
 }
@@ -267,8 +306,7 @@ func removeApi(api string, envVars []string, cliPath string) {
 }
 
 func confirm(expectedPrompt, input string, session *Session, in io.Writer) {
-	time.Sleep(1 * time.Second)
-	Ω(session).Should(Say(expectedPrompt))
+	Eventually(session, timeout).Should(Say(expectedPrompt))
 	in.Write([]byte(input + "\n"))
 }
 
