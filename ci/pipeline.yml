@@ -1,0 +1,18 @@
+---
+jobs:
+- name: cf-plex
+  public: false
+  plan:
+  - get: cf-plex
+    trigger: true
+  - task: test
+    file: cf-plex/ci/tasks/test.yml
+    params:
+      CF_PASSWORD: {{cf-password}}
+
+resources:
+- name: cf-plex
+  type: git
+  source:
+    uri: https://github.com/EngineerBetter/cf-plex.git
+    branch: master

@@ -1,0 +1,10 @@
+#!/bin/bash
+set -xe
+
+curl -L "https://cli.run.pivotal.io/stable?release=linux64-binary&source=github" | tar -zx
+export PATH=$PATH:$PWD
+go version 
+export GOPATH=$PWD/gopath
+
+cd ${GOPATH}/src/github.com/EngineerBetter/cf-plex
+ginkgo -r -v
