@@ -182,17 +182,19 @@ func runCf(cfHome string, args []string) (int, string) {
 	env := env.Set("CF_HOME", cfHome, os.Environ())
 	cmd := CommandWithEnv(env, args...)
 
-	var buffer bytes.Buffer
-	multiWriter := io.MultiWriter(os.Stdout, &buffer)
+	buffer := bytes.NewBufferString("")
+	multiWriter := io.MultiWriter(os.Stdout, buffer)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = multiWriter
 	cmd.Stderr = os.Stderr
 
 	fmt.Printf("Running '%s' on %s\n", strings.Join(args, " "), path.Base(cfHome))
-	cmd.Start()
-	err := cmd.Wait()
-	return determineExitCode(cmd, err), buffer.String()
+	err := cmd.Start()
+	bailIfB0rked(err)
+	err = cmd.Wait()
+	output := buffer.String()
+	return determineExitCode(cmd, err), output
 }
 
 func determineExitCode(cmd *exec.Cmd, err error) (exitCode int) {
