@@ -21,10 +21,11 @@ func (h FileHander) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, h.Path)
 }
 
-func Configure(server *http.Server, addr, path string) {
+func Configure(server *http.Server, addr, osxPath, linux64Path string) {
 	mux := http.NewServeMux()
 	mux.Handle("/list", IndexHandler{Addr: addr})
-	mux.Handle("/bin/osx/echo", FileHander{Path: path})
+	mux.Handle("/bin/osx/echo", FileHander{Path: osxPath})
+	mux.Handle("/bin/linux64/echo", FileHander{Path: linux64Path})
 	server.Handler = mux
 }
 
@@ -43,6 +44,11 @@ var responseBody = `{"plugins": [
         "platform":"osx",
         "url":"%s/bin/osx/echo",
         "checksum":"86aed94e9efd8bdda669c96fc36c979d9acbea5c"
+      },
+      {
+        "platform":"linux64",
+        "url":"%s/bin/linux64/echo",
+        "checksum":"434542420336614e23b2ed91a5aab87c6325d433"
       },
       {
         "platform":"win64",

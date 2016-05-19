@@ -17,7 +17,7 @@ var _ = Describe("CLIPR", func() {
 
 	BeforeEach(func() {
 		server = httptest.NewServer(nil)
-		Configure(server.Config, server.URL, "fixtures/osx/echo")
+		Configure(server.Config, server.URL, "fixtures/osx/echo", "fixtures/linux64/echo")
 	})
 
 	AfterEach(func() {
@@ -41,8 +41,8 @@ var _ = Describe("CLIPR", func() {
 				HaveKeyWithValue("url", server.URL+"/bin/osx/echo"),
 			)))
 			Ω(bins).Should(ContainElement(SatisfyAll(
-				HaveKeyWithValue("platform", "win64"),
-				HaveKeyWithValue("url", server.URL+"/bin/windows64/echo.exe"),
+				HaveKeyWithValue("platform", "linux64"),
+				HaveKeyWithValue("url", server.URL+"/bin/linux64/echo"),
 			)))
 		})
 	})

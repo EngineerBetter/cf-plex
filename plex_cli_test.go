@@ -101,7 +101,7 @@ var _ = Describe("cf-plex", func() {
 
 			server := httptest.NewServer(nil)
 			defer server.Close()
-			clipr.Configure(server.Config, server.URL, "clipr/fixtures/osx/echo")
+			clipr.Configure(server.Config, server.URL, "clipr/fixtures/osx/echo", "clipr/fixtures/linux64/echo")
 
 			session, _ := startSession(envVars, "cf", "add-plugin-repo", "test", server.URL)
 			Eventually(session).Should(Say("added as 'test'"))
