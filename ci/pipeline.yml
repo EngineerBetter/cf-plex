@@ -1,6 +1,6 @@
 ---
 jobs:
-- name: cf-plex
+- name: test
   public: false
   plan:
   - get: cf-plex
