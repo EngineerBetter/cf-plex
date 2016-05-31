@@ -4,3 +4,4 @@ set -xe
 export GOPATH=$PWD/gopath
 cd ${GOPATH}/src/github.com/EngineerBetter/cf-plex
 go build
+echo "Built cf-plex"
