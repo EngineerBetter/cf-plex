@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/EngineerBetter/cf-plex/env"
+	"github.com/mitchellh/go-homedir"
 	"io"
 	"os"
 	"os/exec"
-	"os/user"
 	"path"
 	"path/filepath"
 	"sort"
@@ -137,9 +137,10 @@ func CommandWithEnv(env []string, args ...string) *exec.Cmd {
 func getConfigDir() (configDir string) {
 	configDir = os.Getenv("CF_PLEX_HOME")
 	if configDir == "" {
-		usr, err := user.Current()
+		usrHome, err := homedir.Dir()
 		bailIfB0rked(err)
-		usrHome := usr.HomeDir
+		usrHome, err = homedir.Expand(usrHome)
+		bailIfB0rked(err)
 		configDir = filepath.Join(usrHome, ".cfplex")
 	}
 	return

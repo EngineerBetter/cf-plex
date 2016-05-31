@@ -7,13 +7,13 @@
 	],
 	"Deps": [
 		{
-			"ImportPath": "github.com/EngineerBetter/cli-plugin-echo/clipr",
-			"Rev": "4e1921dd425066fa4f83e23286d57b83bb972a94"
-		},
-		{
 			"ImportPath": "github.com/bitly/go-simplejson",
 			"Comment": "v0.5.0",
 			"Rev": "aabad6e819789e569bd6aabf444c935aa9ba1e44"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/go-homedir",
+			"Rev": "981ab348d865cf048eb7d17e78ac7192632d8415"
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
