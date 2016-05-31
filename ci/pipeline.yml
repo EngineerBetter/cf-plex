@@ -22,7 +22,7 @@ jobs:
       name: cf-plex/version
       tag: cf-plex/version
       tag_prefix: v
-      globs: [build/cf-plex]
+      globs: [build/cf-plex*]
 
 
 
