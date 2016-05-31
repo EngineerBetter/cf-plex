@@ -5,7 +5,6 @@ jobs:
   plan:
   - get: cf-plex
     trigger: true
-    timeout: 30s
   - task: test
     file: cf-plex/ci/tasks/test.yml
     params:
