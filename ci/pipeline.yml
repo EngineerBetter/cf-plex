@@ -22,7 +22,7 @@ jobs:
       name: cf-plex/version
       tag: cf-plex/version
       tag_prefix: v
-      globs: [build/cf-plex*]
+      globs: [build/*]
 
 
 
@@ -31,7 +31,7 @@ resources:
   type: git
   source:
     uri: https://github.com/EngineerBetter/cf-plex.git
-    branch: master
+    branch: dotfiles
 - name: cf-plex-release
   type: github-release
   source:
