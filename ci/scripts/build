@@ -2,5 +2,5 @@
 set -xe
 
 export GOPATH=$PWD/gopath
-go build -o build/cf-plex github.com/EngineerBetter/cf-plex
+go build -o build/cfplex github.com/EngineerBetter/cf-plex
 echo "Built cf-plex"
