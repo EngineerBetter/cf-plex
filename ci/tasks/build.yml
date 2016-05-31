@@ -1,0 +1,9 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source: {repository: cfmobile/ginkgo}
+inputs:
+- name: cf-plex
+  path: gopath/src/github.com/EngineerBetter/cf-plex
+run:
+  path: gopath/src/github.com/EngineerBetter/cf-plex/ci/scripts/build

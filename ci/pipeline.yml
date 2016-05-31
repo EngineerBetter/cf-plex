@@ -1,14 +1,31 @@
 ---
 jobs:
 - name: test
-  public: false
+  public: true
   plan:
   - get: cf-plex
     trigger: true
+    timeout: 30s
   - task: test
     file: cf-plex/ci/tasks/test.yml
     params:
       CF_PASSWORD: {{cf-password}}
+- name: release
+  public: true
+  plan:
+  - get: cf-plex
+    trigger: true
+    passed: [test]
+  - task: build
+    file: cf-plex/ci/tasks/build.yml
+  - put: cf-plex-release
+    params:
+      name: cf-plex/version
+      tag: cf-plex/version
+      tag_prefix: v
+      globs: cf-plex/cf-plex
+
+
 
 resources:
 - name: cf-plex
@@ -16,3 +33,9 @@ resources:
   source:
     uri: https://github.com/EngineerBetter/cf-plex.git
     branch: master
+- name: cf-plex-release
+  type: github-release
+  source:
+    user: EngineerBetter
+    repository: cf-plex
+    access_token: {{github-access-token}}
