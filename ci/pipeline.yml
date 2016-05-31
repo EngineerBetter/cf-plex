@@ -1,7 +1,7 @@
 ---
 jobs:
 - name: test
-  public: true
+  public: false
   plan:
   - get: cf-plex
     trigger: true
