@@ -7,3 +7,5 @@ inputs:
   path: gopath/src/github.com/EngineerBetter/cf-plex
 run:
   path: gopath/src/github.com/EngineerBetter/cf-plex/ci/scripts/build
+outputs:
+- name: build
