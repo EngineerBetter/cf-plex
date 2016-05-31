@@ -2,9 +2,9 @@
 set -xe
 
 export GOPATH=$PWD/gopath
-go build -o build/cf-plex github.com/EngineerBetter/cf-plex
-echo "Built cf-plex"
 
+echo "Building 64-bit Darwin"
+GOARCH=amd64 GOOS=darwin go build -o build/cf-plex_osx github.com/EngineerBetter/cf-plex
 echo "Building 32-bit Linux"
 GOARCH=386 GOOS=linux go build -ldflags '-extldflags "-static"' -o build/cf-plex_linux_i686 github.com/EngineerBetter/cf-plex
 echo "Building 32-bit Windows"
