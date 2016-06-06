@@ -16,6 +16,16 @@ cf-plex add-api https://api.another.com username password
 cf-plex create-org new-org
 ```
 
+## Installation
+
+If you have a working Go development environment:
+
+```
+go get github.com/EngineerBetter/cf-plex
+```
+
+Otherwise [download the latest release](https://github.com/EngineerBetter/cf-plex/releases/latest) for your OS, save it to `PATH`, rename it `cf-plex` and make sure it is executable (`chmod +x cf-plex`).
+
 ## Usage
 
 ### Interactive Mode
