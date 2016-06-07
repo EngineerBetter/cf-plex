@@ -265,6 +265,7 @@ var _ = Describe("cf-plex", func() {
 				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
 				Eventually(session, timeout).Should(Say("Delete cancelled"))
 				Eventually(session).Should(Exit(0))
+				Ω(string(session.Buffer().Contents())).ShouldNot(ContainSubstring(cfPassword))
 			})
 		})
 
