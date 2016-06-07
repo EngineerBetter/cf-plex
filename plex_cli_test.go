@@ -299,6 +299,7 @@ func addApi(api, cfUsername, cfPassword string, envVars []string, cliPath string
 	session.Wait(timeout)
 	Ω(session.Out).Should(Say("Setting api endpoint to " + api + "...\nOK"))
 	Ω(session.Out).Should(Say("Authenticating...\nOK"))
+	Ω(string(session.Buffer().Contents())).ShouldNot(ContainSubstring(cfPassword))
 }
 
 func removeApi(api string, envVars []string, cliPath string) {

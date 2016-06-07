@@ -190,7 +190,13 @@ func runCf(cfHome string, args []string) (int, string) {
 	cmd.Stdout = multiWriter
 	cmd.Stderr = os.Stderr
 
-	fmt.Printf("Running '%s' on %s\n", strings.Join(args, " "), path.Base(cfHome))
+	status := fmt.Sprintf("Running '%s' on %s\n", strings.Join(args, " "), path.Base(cfHome))
+
+	if args[1] == "auth" {
+		status = strings.Replace(status, args[3], "[expunged]", -1)
+	}
+
+	fmt.Printf(status)
 	err := cmd.Start()
 	bailIfB0rked(err)
 	err = cmd.Wait()
