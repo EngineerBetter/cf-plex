@@ -119,6 +119,7 @@ func main() {
 			args = args[:len(args)-1]
 		}
 
+		fmt.Println()
 		for _, apiDir := range apiDirs {
 			exitCode, _ := runCf(apiDir, args)
 			if exitCode != 0 && !force {
@@ -190,7 +191,7 @@ func runCf(cfHome string, args []string) (int, string) {
 	cmd.Stdout = multiWriter
 	cmd.Stderr = os.Stderr
 
-	status := fmt.Sprintf("Running '%s' on %s\n", strings.Join(args, " "), path.Base(cfHome))
+	status := fmt.Sprintf("\nRunning '%s' on %s\n", strings.Join(args, " "), path.Base(cfHome))
 
 	if args[1] == "auth" {
 		status = strings.Replace(status, args[3], "[expunged]", -1)

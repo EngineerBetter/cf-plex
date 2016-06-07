@@ -66,11 +66,11 @@ var _ = Describe("cf-plex", func() {
 		Ω(string(session.Buffer().Contents())).ShouldNot(ContainSubstring(tmpDir))
 
 		session, in := startSession(envVars, cliPath, "delete-org", "does-not-exist")
-		Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.eu-gb.bluemix.net"))
+		expectRunning(session, "cf delete-org does-not-exist", "https___api.eu-gb.bluemix.net")
 		confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
 		Eventually(session, timeout).Should(Say("Delete cancelled"))
 
-		Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.run.pivotal.io"))
+		expectRunning(session, "cf delete-org does-not-exist", "https___api.run.pivotal.io")
 		confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
 		Eventually(session, timeout).Should(Say("Delete cancelled"))
 		Eventually(session).Should(Exit(0))
@@ -114,9 +114,9 @@ var _ = Describe("cf-plex", func() {
 			addApi("https://api.eu-gb.bluemix.net", cfUsername, cfPassword, envVars, cliPath)
 
 			session, _ = startSession(envVars, cliPath, "echo", "foobar")
-			Eventually(session).Should(Say("Running 'cf echo foobar' on https___api.eu-gb.bluemix.net"))
+			expectRunning(session, "cf echo foobar", "https___api.eu-gb.bluemix.net")
 			Eventually(session).Should(Say("foobar"))
-			Eventually(session).Should(Say("Running 'cf echo foobar' on https___api.run.pivotal.io"))
+			expectRunning(session, "cf echo foobar", "https___api.run.pivotal.io")
 			Eventually(session).Should(Say("foobar"))
 		})
 	})
@@ -209,11 +209,11 @@ var _ = Describe("cf-plex", func() {
 				Eventually(session, timeout).Should(Say("Authenticating...\nOK"))
 				Eventually(session, timeout).Should(Say("Setting api endpoint to https://api.eu-gb.bluemix.net"))
 				Eventually(session, timeout).Should(Say("Authenticating...\nOK"))
-				Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.run.pivotal.io"))
+				expectRunning(session, "cf delete-org does-not-exist", "https___api.run.pivotal.io")
 				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
 				Eventually(session, timeout).Should(Say("Delete cancelled"))
 
-				Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.eu-gb.bluemix.net"))
+				expectRunning(session, "cf delete-org does-not-exist", "https___api.eu-gb.bluemix.net")
 				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
 				Eventually(session, timeout).Should(Say("Delete cancelled"))
 				Eventually(session).Should(Exit(0))
@@ -257,11 +257,11 @@ var _ = Describe("cf-plex", func() {
 				Eventually(session, timeout).Should(Say("Authenticating...\nOK"))
 				Eventually(session, timeout).Should(Say("Setting api endpoint to https://api.eu-gb.bluemix.net"))
 				Eventually(session, timeout).Should(Say("Authenticating...\nOK"))
-				Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.run.pivotal.io"))
+				expectRunning(session, "cf delete-org does-not-exist", "https___api.run.pivotal.io")
 				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
 				Eventually(session, timeout).Should(Say("Delete cancelled"))
 
-				Eventually(session).Should(Say("Running 'cf delete-org does-not-exist' on https___api.eu-gb.bluemix.net"))
+				expectRunning(session, "cf delete-org does-not-exist", "https___api.eu-gb.bluemix.net")
 				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
 				Eventually(session, timeout).Should(Say("Delete cancelled"))
 				Eventually(session).Should(Exit(0))
@@ -320,4 +320,8 @@ func expectUsage(session *Session) {
 	Eventually(session).Should(Say(addUsageMatcher))
 	Eventually(session).Should(Say(listUsageMatcher))
 	Eventually(session).Should(Say(removeUsageMatcher))
+}
+
+func expectRunning(session *Session, cmd, api string) {
+	Eventually(session).Should(Say("\n\nRunning '" + cmd + "' on " + api))
 }
