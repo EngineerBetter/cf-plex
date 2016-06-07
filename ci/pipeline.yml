@@ -13,7 +13,7 @@ jobs:
   public: true
   plan:
   - get: cf-plex
-    trigger: true
+    trigger: false
     passed: [test]
   - task: build
     file: cf-plex/ci/tasks/build.yml
