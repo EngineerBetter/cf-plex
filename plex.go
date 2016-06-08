@@ -15,7 +15,7 @@ import (
 	"syscall"
 )
 
-var cfUsage = "cf-plex <cf cli command> [--force]"
+var cfUsage = "cf-plex [-g <group>] <cf cli command> [--force]"
 var addUsage = "cf-plex add-api [-g group] <apiUrl> [<username> <password>]"
 var listUsage = "cf-plex list-apis"
 var removeUsage = "cf-plex remove-api [-g group] <apiUrl>"
@@ -121,32 +121,39 @@ func main() {
 
 		cfEnvs := env.Get("CF_PLEX_APIS", "")
 		if cfEnvs != "" {
-			tripleSeparator := env.Get("CF_PLEX_SEP_TRIPLE", env.PlexTripleSeparator)
-			credApiSeparator := env.Get("CF_PLEX_SEP_CREDS_API", env.PlexCredApiSeparator)
-			userPassSeparator := env.Get("CF_PLEX_SEP_USER_PASS", env.PlexUserPassSeparator)
-
-			coords, err := env.GetCoordinates(cfEnvs, tripleSeparator, credApiSeparator, userPassSeparator)
-			bailIfB0rked(err)
-
-			for _, coord := range coords {
-				apiDir, err := target.AddToGroup(cfPlexHome, "batch", coord.Api)
-				bailIfB0rked(err)
-				targets = append(targets, target.Target{Name: coord.Api, Path: apiDir})
-
-				_, output := runCf(apiDir, []string{"", "api", coord.Api})
-				if strings.Contains(output, "Not logged in") {
-					runCf(apiDir, []string{"", "auth", coord.Username, coord.Password})
-				}
-			}
+			targets = getTargetsFromEnv(cfPlexHome, cfEnvs)
 		} else {
-			var err error
-			groups, err := target.List(cfPlexHome)
-			bailIfB0rked(err)
-			if len(groups[0].Apis) == 0 {
-				os.Stderr.WriteString("No APIs have been set")
-				os.Exit(1)
+			if args[1] == "-g" {
+				groupName := args[2]
+				groups, err := target.List(cfPlexHome)
+				bailIfB0rked(err)
+				for _, group := range groups {
+					if group.Name == groupName {
+						targets = group.Apis
+					}
+				}
+
+				if targets == nil {
+					os.Stderr.WriteString("Group '" + groupName + "' not recognised")
+					os.Exit(1)
+				}
+
+				args = append(args[0:0], args[2:]...)
+			} else {
+				if target.GroupsExist(cfPlexHome) {
+					os.Stderr.WriteString("-g <group> is mandatory whenever groups have been added. Use '-g default' to target APIs without an explicit group.")
+					os.Exit(1)
+				}
+
+				var err error
+				groups, err := target.List(cfPlexHome)
+				bailIfB0rked(err)
+				if len(groups[0].Apis) == 0 {
+					os.Stderr.WriteString("No APIs have been set")
+					os.Exit(1)
+				}
+				targets = groups[0].Apis
 			}
-			targets = groups[0].Apis
 		}
 
 		var force bool
@@ -188,6 +195,29 @@ func bailIfCfEnvs() {
 		fmt.Println("Managing APIs is not allowed when CF_PLEX_APIS is set")
 		os.Exit(1)
 	}
+}
+
+func getTargetsFromEnv(cfPlexHome, cfEnvs string) []target.Target {
+	var targets []target.Target
+	tripleSeparator := env.Get("CF_PLEX_SEP_TRIPLE", env.PlexTripleSeparator)
+	credApiSeparator := env.Get("CF_PLEX_SEP_CREDS_API", env.PlexCredApiSeparator)
+	userPassSeparator := env.Get("CF_PLEX_SEP_USER_PASS", env.PlexUserPassSeparator)
+
+	coords, err := env.GetCoordinates(cfEnvs, tripleSeparator, credApiSeparator, userPassSeparator)
+	bailIfB0rked(err)
+
+	for _, coord := range coords {
+		apiDir, err := target.AddToGroup(cfPlexHome, "batch", coord.Api)
+		bailIfB0rked(err)
+		targets = append(targets, target.Target{Name: coord.Api, Path: apiDir})
+
+		_, output := runCf(apiDir, []string{"", "api", coord.Api})
+		if strings.Contains(output, "Not logged in") {
+			runCf(apiDir, []string{"", "auth", coord.Username, coord.Password})
+		}
+	}
+
+	return targets
 }
 
 func runCf(cfHome string, args []string) (int, string) {

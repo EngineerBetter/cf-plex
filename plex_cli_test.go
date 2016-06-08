@@ -300,9 +300,21 @@ var _ = Describe("cf-plex", func() {
 			Eventually(session).Should(Say("nonprod"))
 			Eventually(session).Should(Say("\thttps://api.run.pivotal.io"))
 			Eventually(session).Should(Exit(0))
+
+			session, _ = startSession(envVars, cliPath, "delete-org", "my-org")
+			Eventually(session).Should(Exit(1))
+			Eventually(session.Err).Should(Say("-g <group> is mandatory whenever groups have been added. Use '-g default' to target APIs without an explicit group."))
+
+			session, in := startSession(envVars, cliPath, "-g", "nonprod", "delete-org", "does-not-exist")
+			expectRunning(session, "cf delete-org does-not-exist", "https___api.run.pivotal.io")
+			confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+			Eventually(session, timeout).Should(Say("Delete cancelled"))
+			Eventually(session).Should(Exit(0))
+
 			session, _ = startSession(envVars, cliPath, "remove-api", "-g", "nonprod", "https://api.run.pivotal.io")
 			Eventually(session).Should(Say("Removed https://api.run.pivotal.io from 'nonprod'"))
 			Eventually(session).Should(Exit(0))
+
 			session, _ = startSession(envVars, cliPath, "list-apis")
 			Eventually(session).Should(Exit(0))
 			Eventually(session).ShouldNot(Say("nonprod"))
@@ -355,7 +367,7 @@ func confirm(expectedPrompt, input string, session *Session, in io.Writer) {
 
 func expectUsage(session *Session) {
 	Eventually(session).Should(Say("Usage:"))
-	Eventually(session).Should(Say("cf-plex <cf cli command> [--force]"))
+	Eventually(session).Should(Say("cf-plex \\[-g <group>\\] <cf cli command> \\[--force\\]"))
 	Eventually(session).Should(Say(addUsageMatcher))
 	Eventually(session).Should(Say(listUsageMatcher))
 	Eventually(session).Should(Say(removeUsageMatcher))

@@ -32,23 +32,10 @@ func Remove(plexHome, api string) error {
 }
 
 func List(plexHome string) ([]Group, error) {
-	groupsPath := filepath.Join(plexHome, "groups")
-	_, err := os.Stat(groupsPath)
-
-	if err != nil && !os.IsNotExist(err) {
-		return nil, err
-	}
-
 	var groups []Group
 
-	if os.IsNotExist(err) {
-		targets, err := getTargets(plexHome)
-		if err != nil {
-			return nil, err
-		}
-		groups = append(groups, Group{Name: "default", Apis: targets})
-	} else {
-		dirs, err := listDirs(groupsPath)
+	if GroupsExist(plexHome) {
+		dirs, err := listDirs(filepath.Join(plexHome, "groups"))
 		if err != nil {
 			return nil, err
 		}
@@ -60,9 +47,26 @@ func List(plexHome string) ([]Group, error) {
 			}
 			groups = append(groups, Group{Name: filepath.Base(groupDir), Apis: targets})
 		}
+	} else {
+		targets, err := getTargets(plexHome)
+		if err != nil {
+			return nil, err
+		}
+		groups = append(groups, Group{Name: "default", Apis: targets})
 	}
 
 	return groups, nil
+}
+
+func GroupsExist(plexHome string) bool {
+	groupsPath := filepath.Join(plexHome, "groups")
+	_, err := os.Stat(groupsPath)
+
+	if err != nil && os.IsNotExist(err) {
+		return false
+	}
+
+	return true
 }
 
 func AddToGroup(plexHome, group, api string) (string, error) {
