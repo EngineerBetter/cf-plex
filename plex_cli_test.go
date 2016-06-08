@@ -159,8 +159,8 @@ var _ = Describe("cf-plex", func() {
 
 			session, _ = startSession(envVars, cliPath, "list-apis")
 			session.Wait("1s")
-			Ω(session.Out).Should(Say("https___api.eu-gb.bluemix.net"), "APIs should be alphabetically listed")
-			Ω(session.Out).Should(Say("https___api.run.pivotal.io"))
+			Ω(session.Out).Should(Say("https://api.eu-gb.bluemix.net"), "APIs should be alphabetically listed")
+			Ω(session.Out).Should(Say("https://api.run.pivotal.io"))
 			Ω(string(session.Buffer().Contents())).ShouldNot(ContainSubstring(tmpDir))
 
 			session, in := startSession(envVars, cliPath, "delete-org", "does-not-exist")
@@ -282,7 +282,17 @@ var _ = Describe("cf-plex", func() {
 				Ω(string(session.Buffer().Contents())).ShouldNot(ContainSubstring(cfPassword))
 			})
 		})
+	})
 
+	Describe("group management", func() {
+		It("allows groups to be added and listed", func() {
+			session, _ := startSession(envVars, cliPath, "add-api", "-g", "nonprod", "https://api.run.pivotal.io", cfUsername, cfPassword)
+			Eventually(session, "5s").Should(Exit(0))
+			session, _ = startSession(envVars, cliPath, "list-apis")
+			Eventually(session).Should(Say("nonprod"))
+			Eventually(session).Should(Say("\thttps://api.run.pivotal.io"))
+			Eventually(session).Should(Exit(0))
+		})
 	})
 
 	Describe("asking for help", func() {

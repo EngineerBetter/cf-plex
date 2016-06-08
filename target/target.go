@@ -2,10 +2,21 @@ package target
 
 import (
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 )
+
+type Target struct {
+	Name string
+	Path string
+}
+
+type Group struct {
+	Name string
+	Apis []Target
+}
 
 func Add(plexHome, api string) (string, error) {
 	apiDir := Sanitise(api)
@@ -20,14 +31,75 @@ func Remove(plexHome, api string) error {
 	return os.RemoveAll(fullPath)
 }
 
+func List(plexHome string) ([]Group, error) {
+	groupsPath := filepath.Join(plexHome, "groups")
+	_, err := os.Stat(groupsPath)
+
+	if err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+
+	var groups []Group
+
+	if os.IsNotExist(err) {
+		targets, err := getTargets(plexHome)
+		if err != nil {
+			return nil, err
+		}
+		groups = append(groups, Group{Name: "default", Apis: targets})
+	} else {
+		dirs, err := listDirs(groupsPath)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, groupDir := range dirs {
+			targets, err := getTargets(groupDir)
+			if err != nil {
+				return nil, err
+			}
+			groups = append(groups, Group{Name: filepath.Base(groupDir), Apis: targets})
+		}
+	}
+
+	return groups, nil
+}
+
+func AddToGroup(plexHome, group, api string) (string, error) {
+	apiDir := Sanitise(api)
+	fullPath := filepath.Join(plexHome, "groups", group, apiDir)
+	err := os.MkdirAll(fullPath, 0700)
+	return fullPath, err
+}
+
 func Sanitise(apiUrl string) string {
 	api := strings.Replace(apiUrl, "https://", "https___", -1)
 	api = strings.Replace(api, "http://", "http___", -1)
 	return api
 }
 
-func List(plexHome string) ([]string, error) {
-	f, err := os.Open(plexHome)
+func MakeFilthy(apiDir string) string {
+	api := strings.Replace(apiDir, "https___", "https://", -1)
+	api = strings.Replace(api, "http___", "http://", -1)
+	return api
+}
+
+func getTargets(parentPath string) ([]Target, error) {
+	apiDirs, err := listDirs(parentPath)
+	if err != nil {
+		return nil, err
+	}
+
+	var targets []Target
+	for _, apiDir := range apiDirs {
+		name := MakeFilthy(path.Base(apiDir))
+		targets = append(targets, Target{Name: name, Path: apiDir})
+	}
+	return targets, nil
+}
+
+func listDirs(path string) ([]string, error) {
+	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +111,7 @@ func List(plexHome string) ([]string, error) {
 	sort.Strings(names)
 
 	for index, apiDir := range names {
-		names[index] = filepath.Join(plexHome, apiDir)
+		names[index] = filepath.Join(path, apiDir)
 	}
 
 	return names, nil

@@ -40,7 +40,7 @@ func main() {
 				if len(args) == 5 {
 					group := args[3]
 					api := args[4]
-					fullPath, err := target.Add(cfPlexHome, api)
+					fullPath, err := target.AddToGroup(cfPlexHome, group, api)
 					bailIfB0rked(err)
 					runCf(fullPath, []string{"", "login", "-a", api})
 					fmt.Println("Added " + api + " to group '" + group + "'")
@@ -51,7 +51,7 @@ func main() {
 					username := args[5]
 					password := args[6]
 
-					fullPath, err := target.Add(cfPlexHome, api)
+					fullPath, err := target.AddToGroup(cfPlexHome, group, api)
 					bailIfB0rked(err)
 					runCf(fullPath, []string{"", "api", api})
 					runCf(fullPath, []string{"", "auth", username, password})
@@ -82,10 +82,14 @@ func main() {
 	case "list-apis":
 		bailIfCfEnvs()
 
-		apiDirs, err := target.List(cfPlexHome)
+		groups, err := target.List(cfPlexHome)
 		bailIfB0rked(err)
-		for _, apiDir := range apiDirs {
-			fmt.Println(path.Base(apiDir))
+		for _, group := range groups {
+			fmt.Println(group.Name)
+
+			for _, target := range group.Apis {
+				fmt.Println("\t" + target.Name)
+			}
 		}
 	case "remove-api":
 		bailIfCfEnvs()
@@ -100,7 +104,7 @@ func main() {
 		bailIfB0rked(err)
 		fmt.Println("Removed " + api)
 	default:
-		var apiDirs []string
+		var targets []target.Target
 
 		cfEnvs := env.Get("CF_PLEX_APIS", "")
 		if cfEnvs != "" {
@@ -112,10 +116,9 @@ func main() {
 			bailIfB0rked(err)
 
 			for _, coord := range coords {
-				apiSanitised := target.Sanitise(coord.Api)
-				apiDir := filepath.Join(cfPlexHome, "batch", apiSanitised)
-				os.MkdirAll(apiDir, 0700)
-				apiDirs = append(apiDirs, apiDir)
+				apiDir, err := target.AddToGroup(cfPlexHome, "batch", coord.Api)
+				bailIfB0rked(err)
+				targets = append(targets, target.Target{Name: coord.Api, Path: apiDir})
 
 				_, output := runCf(apiDir, []string{"", "api", coord.Api})
 				if strings.Contains(output, "Not logged in") {
@@ -124,12 +127,13 @@ func main() {
 			}
 		} else {
 			var err error
-			apiDirs, err = target.List(cfPlexHome)
+			groups, err := target.List(cfPlexHome)
 			bailIfB0rked(err)
-			if len(apiDirs) == 0 {
+			if len(groups[0].Apis) == 0 {
 				os.Stderr.WriteString("No APIs have been set")
 				os.Exit(1)
 			}
+			targets = groups[0].Apis
 		}
 
 		var force bool
@@ -139,8 +143,8 @@ func main() {
 		}
 
 		fmt.Println()
-		for _, apiDir := range apiDirs {
-			exitCode, _ := runCf(apiDir, args)
+		for _, aTarget := range targets {
+			exitCode, _ := runCf(aTarget.Path, args)
 			if exitCode != 0 && !force {
 				os.Exit(exitCode)
 			}
