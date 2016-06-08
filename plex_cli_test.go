@@ -51,37 +51,6 @@ var _ = Describe("cf-plex", func() {
 		Ω(os.RemoveAll(tmpDir)).Should(Succeed())
 	})
 
-	It("runs commands against multiple Cloud Foundry instances", func() {
-		session, _ := startSession(envVars, cliPath, "apps")
-		session.Wait("1s")
-		Ω(session.Err).Should(Say("No APIs have been set"))
-
-		addApi("https://api.run.pivotal.io", cfUsername, cfPassword, envVars, cliPath)
-		addApi("https://api.eu-gb.bluemix.net", cfUsername, cfPassword, envVars, cliPath)
-
-		session, _ = startSession(envVars, cliPath, "list-apis")
-		session.Wait("1s")
-		Ω(session.Out).Should(Say("https___api.eu-gb.bluemix.net"), "APIs should be alphabetically listed")
-		Ω(session.Out).Should(Say("https___api.run.pivotal.io"))
-		Ω(string(session.Buffer().Contents())).ShouldNot(ContainSubstring(tmpDir))
-
-		session, in := startSession(envVars, cliPath, "delete-org", "does-not-exist")
-		expectRunning(session, "cf delete-org does-not-exist", "https___api.eu-gb.bluemix.net")
-		confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
-		Eventually(session, timeout).Should(Say("Delete cancelled"))
-
-		expectRunning(session, "cf delete-org does-not-exist", "https___api.run.pivotal.io")
-		confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
-		Eventually(session, timeout).Should(Say("Delete cancelled"))
-		Eventually(session).Should(Exit(0))
-
-		removeApi("https://api.run.pivotal.io", envVars, cliPath)
-		removeApi("https://api.eu-gb.bluemix.net", envVars, cliPath)
-
-		session, _ = startSession(envVars, cliPath, "apps")
-		Eventually(session.Err).Should(Say("No APIs have been set"))
-	})
-
 	Describe("plugin availability", func() {
 		var tmpCfHome string
 		var err error
@@ -166,6 +135,37 @@ var _ = Describe("cf-plex", func() {
 	})
 
 	Describe("running cf commands", func() {
+		It("runs commands against multiple Cloud Foundry instances", func() {
+			session, _ := startSession(envVars, cliPath, "apps")
+			session.Wait("1s")
+			Ω(session.Err).Should(Say("No APIs have been set"))
+
+			addApi("https://api.run.pivotal.io", cfUsername, cfPassword, envVars, cliPath)
+			addApi("https://api.eu-gb.bluemix.net", cfUsername, cfPassword, envVars, cliPath)
+
+			session, _ = startSession(envVars, cliPath, "list-apis")
+			session.Wait("1s")
+			Ω(session.Out).Should(Say("https___api.eu-gb.bluemix.net"), "APIs should be alphabetically listed")
+			Ω(session.Out).Should(Say("https___api.run.pivotal.io"))
+			Ω(string(session.Buffer().Contents())).ShouldNot(ContainSubstring(tmpDir))
+
+			session, in := startSession(envVars, cliPath, "delete-org", "does-not-exist")
+			expectRunning(session, "cf delete-org does-not-exist", "https___api.eu-gb.bluemix.net")
+			confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+			Eventually(session, timeout).Should(Say("Delete cancelled"))
+
+			expectRunning(session, "cf delete-org does-not-exist", "https___api.run.pivotal.io")
+			confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+			Eventually(session, timeout).Should(Say("Delete cancelled"))
+			Eventually(session).Should(Exit(0))
+
+			removeApi("https://api.run.pivotal.io", envVars, cliPath)
+			removeApi("https://api.eu-gb.bluemix.net", envVars, cliPath)
+
+			session, _ = startSession(envVars, cliPath, "apps")
+			Eventually(session.Err).Should(Say("No APIs have been set"))
+		})
+
 		It("fails when subprocesses fail", func() {
 			session, _ := Start(CommandWithEnv(envVars, cliPath, "rubbish"), GinkgoWriter, GinkgoWriter)
 			Eventually(session).Should(Exit(1))
