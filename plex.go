@@ -16,7 +16,7 @@ import (
 )
 
 var cfUsage = "cf-plex <cf cli command> [--force]"
-var addUsage = "cf-plex add-api <apiUrl> [<username> <password>]"
+var addUsage = "cf-plex add-api [-g group] <apiUrl> [<username> <password>]"
 var listUsage = "cf-plex list-apis"
 var removeUsage = "cf-plex remove-api <apiUrl>"
 
@@ -35,29 +35,58 @@ func main() {
 	case "add-api":
 		bailIfCfEnvs()
 
-		switch len(args) {
-		case 3:
-			api := args[2]
-			apiDir := sanitiseApi(api)
-			fullPath := filepath.Join(cfPlexHome, apiDir)
-			err := os.MkdirAll(fullPath, 0700)
-			bailIfB0rked(err)
-			runCf(fullPath, []string{"", "login", "-a", api})
-		case 5:
-			api := args[2]
-			username := args[3]
-			password := args[4]
+		if len(args) >= 3 {
+			if args[2] == "-g" {
+				if len(args) == 5 {
+					group := args[3]
+					api := args[4]
+					apiDir := sanitiseApi(api)
+					fullPath := filepath.Join(cfPlexHome, apiDir)
+					err := os.MkdirAll(fullPath, 0700)
+					bailIfB0rked(err)
+					runCf(fullPath, []string{"", "login", "-a", api})
+					fmt.Println("Added " + api + " to group '" + group + "'")
+					os.Exit(0)
+				} else if len(args) == 7 {
+					group := args[3]
+					api := args[4]
+					username := args[5]
+					password := args[6]
 
-			apiDir := sanitiseApi(api)
-			fullPath := filepath.Join(cfPlexHome, apiDir)
-			err := os.MkdirAll(fullPath, 0700)
-			bailIfB0rked(err)
-			runCf(fullPath, []string{"", "api", api})
-			runCf(fullPath, []string{"", "auth", username, password})
-		default:
-			fmt.Println("Usage: " + addUsage)
-			os.Exit(1)
+					apiDir := sanitiseApi(api)
+					fullPath := filepath.Join(cfPlexHome, apiDir)
+					err := os.MkdirAll(fullPath, 0700)
+					bailIfB0rked(err)
+					runCf(fullPath, []string{"", "api", api})
+					runCf(fullPath, []string{"", "auth", username, password})
+					fmt.Println("Added " + api + " to group '" + group + "'")
+					os.Exit(0)
+				}
+			} else if len(args) == 3 {
+				api := args[2]
+				apiDir := sanitiseApi(api)
+				fullPath := filepath.Join(cfPlexHome, apiDir)
+				err := os.MkdirAll(fullPath, 0700)
+				bailIfB0rked(err)
+				runCf(fullPath, []string{"", "login", "-a", api})
+				os.Exit(0)
+			} else if len(args) == 5 {
+				api := args[2]
+				username := args[3]
+				password := args[4]
+
+				apiDir := sanitiseApi(api)
+				fullPath := filepath.Join(cfPlexHome, apiDir)
+				err := os.MkdirAll(fullPath, 0700)
+				bailIfB0rked(err)
+				runCf(fullPath, []string{"", "api", api})
+				runCf(fullPath, []string{"", "auth", username, password})
+				os.Exit(0)
+			}
 		}
+
+		fmt.Println("Usage: " + addUsage)
+		os.Exit(1)
 	case "list-apis":
 		bailIfCfEnvs()
 

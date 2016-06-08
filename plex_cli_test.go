@@ -17,7 +17,7 @@ import (
 )
 
 var timeout = "10s"
-var addUsageMatcher = "cf-plex add-api <apiUrl> \\[<username> <password>\\]"
+var addUsageMatcher = "cf-plex add-api \\[-g group\\] <apiUrl> \\[<username> <password>\\]"
 var listUsageMatcher = "cf-plex list-apis"
 var removeUsageMatcher = "cf-plex remove-api <apiUrl>"
 
@@ -121,6 +121,20 @@ var _ = Describe("cf-plex", func() {
 				session, _ := startSession(envVars, cliPath, "add-api", cfUsername, cfPassword)
 				Eventually(session).Should(Say("Usage: " + addUsageMatcher))
 				Eventually(session).Should(Exit(1))
+			})
+		})
+
+		Context("when -g is specified", func() {
+			It("requires a group name", func() {
+				session, _ := startSession(envVars, cliPath, "add-api", "-g", "https://api.run.pivotal.io", cfUsername, cfPassword)
+				Eventually(session).Should(Say("Usage: " + addUsageMatcher))
+				Eventually(session).Should(Exit(1))
+			})
+
+			It("adds a group", func() {
+				session, _ := startSession(envVars, cliPath, "add-api", "-g", "nonprod", "https://api.run.pivotal.io", cfUsername, cfPassword)
+				Eventually(session, "5s").Should(Say("Added https://api.run.pivotal.io to group 'nonprod'"))
+				Eventually(session).Should(Exit(0))
 			})
 		})
 	})
