@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/EngineerBetter/cf-plex/env"
+	"github.com/EngineerBetter/cf-plex/target"
 	"github.com/mitchellh/go-homedir"
 	"io"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
-	"sort"
 	"strings"
 	"syscall"
 )
@@ -40,9 +40,7 @@ func main() {
 				if len(args) == 5 {
 					group := args[3]
 					api := args[4]
-					apiDir := sanitiseApi(api)
-					fullPath := filepath.Join(cfPlexHome, apiDir)
-					err := os.MkdirAll(fullPath, 0700)
+					fullPath, err := target.Add(cfPlexHome, api)
 					bailIfB0rked(err)
 					runCf(fullPath, []string{"", "login", "-a", api})
 					fmt.Println("Added " + api + " to group '" + group + "'")
@@ -53,9 +51,7 @@ func main() {
 					username := args[5]
 					password := args[6]
 
-					apiDir := sanitiseApi(api)
-					fullPath := filepath.Join(cfPlexHome, apiDir)
-					err := os.MkdirAll(fullPath, 0700)
+					fullPath, err := target.Add(cfPlexHome, api)
 					bailIfB0rked(err)
 					runCf(fullPath, []string{"", "api", api})
 					runCf(fullPath, []string{"", "auth", username, password})
@@ -64,9 +60,7 @@ func main() {
 				}
 			} else if len(args) == 3 {
 				api := args[2]
-				apiDir := sanitiseApi(api)
-				fullPath := filepath.Join(cfPlexHome, apiDir)
-				err := os.MkdirAll(fullPath, 0700)
+				fullPath, err := target.Add(cfPlexHome, api)
 				bailIfB0rked(err)
 				runCf(fullPath, []string{"", "login", "-a", api})
 				os.Exit(0)
@@ -75,9 +69,7 @@ func main() {
 				username := args[3]
 				password := args[4]
 
-				apiDir := sanitiseApi(api)
-				fullPath := filepath.Join(cfPlexHome, apiDir)
-				err := os.MkdirAll(fullPath, 0700)
+				fullPath, err := target.Add(cfPlexHome, api)
 				bailIfB0rked(err)
 				runCf(fullPath, []string{"", "api", api})
 				runCf(fullPath, []string{"", "auth", username, password})
@@ -90,7 +82,7 @@ func main() {
 	case "list-apis":
 		bailIfCfEnvs()
 
-		apiDirs, err := getApiDirs(cfPlexHome)
+		apiDirs, err := target.List(cfPlexHome)
 		bailIfB0rked(err)
 		for _, apiDir := range apiDirs {
 			fmt.Println(path.Base(apiDir))
@@ -104,9 +96,7 @@ func main() {
 		}
 
 		api := args[2]
-		apiDir := sanitiseApi(api)
-		fullPath := filepath.Join(cfPlexHome, apiDir)
-		err := os.RemoveAll(fullPath)
+		err := target.Remove(cfPlexHome, api)
 		bailIfB0rked(err)
 		fmt.Println("Removed " + api)
 	default:
@@ -122,7 +112,7 @@ func main() {
 			bailIfB0rked(err)
 
 			for _, coord := range coords {
-				apiSanitised := sanitiseApi(coord.Api)
+				apiSanitised := target.Sanitise(coord.Api)
 				apiDir := filepath.Join(cfPlexHome, "batch", apiSanitised)
 				os.MkdirAll(apiDir, 0700)
 				apiDirs = append(apiDirs, apiDir)
@@ -134,7 +124,7 @@ func main() {
 			}
 		} else {
 			var err error
-			apiDirs, err = getApiDirs(cfPlexHome)
+			apiDirs, err = target.List(cfPlexHome)
 			bailIfB0rked(err)
 			if len(apiDirs) == 0 {
 				os.Stderr.WriteString("No APIs have been set")
@@ -181,31 +171,6 @@ func bailIfCfEnvs() {
 		fmt.Println("Managing APIs is not allowed when CF_PLEX_APIS is set")
 		os.Exit(1)
 	}
-}
-
-func sanitiseApi(api string) string {
-	api = strings.Replace(api, ":", "_", -1)
-	api = strings.Replace(api, "/", "_", -1)
-	return api
-}
-
-func getApiDirs(configDir string) ([]string, error) {
-	f, err := os.Open(configDir)
-	if err != nil {
-		return nil, err
-	}
-	names, err := f.Readdirnames(-1)
-	f.Close()
-	if err != nil {
-		return nil, err
-	}
-	sort.Strings(names)
-
-	for index, apiDir := range names {
-		names[index] = filepath.Join(configDir, apiDir)
-	}
-
-	return names, nil
 }
 
 func runCf(cfHome string, args []string) (int, string) {
