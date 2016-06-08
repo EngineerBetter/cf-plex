@@ -16,9 +16,9 @@ import (
 )
 
 var cfUsage = "cf-plex [-g <group>] <cf cli command> [--force]"
-var addUsage = "cf-plex add-api [-g group] <apiUrl> [<username> <password>]"
+var addUsage = "cf-plex add-api [-g <group>] <apiUrl> [<username> <password>]"
 var listUsage = "cf-plex list-apis"
-var removeUsage = "cf-plex remove-api [-g group] <apiUrl>"
+var removeUsage = "cf-plex remove-api [-g <group>] <apiUrl>"
 
 func main() {
 	args := os.Args

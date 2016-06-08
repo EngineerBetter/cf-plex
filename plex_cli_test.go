@@ -17,9 +17,9 @@ import (
 )
 
 var timeout = "10s"
-var addUsageMatcher = "cf-plex add-api \\[-g group\\] <apiUrl> \\[<username> <password>\\]"
+var addUsageMatcher = "cf-plex add-api \\[-g <group>\\] <apiUrl> \\[<username> <password>\\]"
 var listUsageMatcher = "cf-plex list-apis"
-var removeUsageMatcher = "cf-plex remove-api \\[-g group\\] <apiUrl>"
+var removeUsageMatcher = "cf-plex remove-api \\[-g <group>\\] <apiUrl>"
 
 var _ = Describe("cf-plex", func() {
 
