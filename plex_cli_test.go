@@ -293,7 +293,13 @@ var _ = Describe("cf-plex", func() {
 	})
 
 	Describe("group management", func() {
-		It("allows groups to be added and listed", func() {
+		It("errs when a unrecognised group is referenced", func() {
+			session, _ := startSession(envVars, cliPath, "-g", "nonprod", "delete-org", "does-not-exist")
+			Eventually(session).Should(Exit(1))
+			Eventually(session.Err).Should(Say("Group 'nonprod' not recognised"))
+		})
+
+		It("allows groups to be added, listed, run against, and removed", func() {
 			session, _ := startSession(envVars, cliPath, "add-api", "-g", "nonprod", "https://api.run.pivotal.io", cfUsername, cfPassword)
 			Eventually(session, "5s").Should(Exit(0))
 			session, _ = startSession(envVars, cliPath, "list-apis")
