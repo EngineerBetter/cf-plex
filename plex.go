@@ -18,7 +18,7 @@ import (
 var cfUsage = "cf-plex <cf cli command> [--force]"
 var addUsage = "cf-plex add-api [-g group] <apiUrl> [<username> <password>]"
 var listUsage = "cf-plex list-apis"
-var removeUsage = "cf-plex remove-api <apiUrl>"
+var removeUsage = "cf-plex remove-api [-g group] <apiUrl>"
 
 func main() {
 	args := os.Args
@@ -99,10 +99,23 @@ func main() {
 			os.Exit(1)
 		}
 
-		api := args[2]
-		err := target.Remove(cfPlexHome, api)
-		bailIfB0rked(err)
-		fmt.Println("Removed " + api)
+		if args[2] == "-g" {
+			if len(args) != 5 {
+				fmt.Println("Usage: " + removeUsage)
+				os.Exit(1)
+			}
+
+			group := args[3]
+			api := args[4]
+			err := target.RemoveFromGroup(cfPlexHome, group, api)
+			bailIfB0rked(err)
+			fmt.Println("Removed " + api + " from '" + group + "'")
+		} else {
+			api := args[2]
+			err := target.Remove(cfPlexHome, api)
+			bailIfB0rked(err)
+			fmt.Println("Removed " + api)
+		}
 	default:
 		var targets []target.Target
 

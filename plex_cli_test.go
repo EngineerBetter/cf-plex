@@ -19,7 +19,7 @@ import (
 var timeout = "10s"
 var addUsageMatcher = "cf-plex add-api \\[-g group\\] <apiUrl> \\[<username> <password>\\]"
 var listUsageMatcher = "cf-plex list-apis"
-var removeUsageMatcher = "cf-plex remove-api <apiUrl>"
+var removeUsageMatcher = "cf-plex remove-api \\[-g group\\] <apiUrl>"
 
 var _ = Describe("cf-plex", func() {
 
@@ -144,6 +144,14 @@ var _ = Describe("cf-plex", func() {
 			It("outputs a useful error message", func() {
 				session, _ := startSession(envVars, cliPath, "remove-api")
 				Eventually(session).Should(Say("Usage: " + removeUsageMatcher))
+			})
+		})
+
+		Context("when -g is specified", func() {
+			It("requires a group name", func() {
+				session, _ := startSession(envVars, cliPath, "remove-api", "-g", "https://api.run.pivotal.io")
+				Eventually(session).Should(Say("Usage: " + removeUsageMatcher))
+				Eventually(session).Should(Exit(1))
 			})
 		})
 	})
@@ -292,6 +300,13 @@ var _ = Describe("cf-plex", func() {
 			Eventually(session).Should(Say("nonprod"))
 			Eventually(session).Should(Say("\thttps://api.run.pivotal.io"))
 			Eventually(session).Should(Exit(0))
+			session, _ = startSession(envVars, cliPath, "remove-api", "-g", "nonprod", "https://api.run.pivotal.io")
+			Eventually(session).Should(Say("Removed https://api.run.pivotal.io from 'nonprod'"))
+			Eventually(session).Should(Exit(0))
+			session, _ = startSession(envVars, cliPath, "list-apis")
+			Eventually(session).Should(Exit(0))
+			Eventually(session).ShouldNot(Say("nonprod"))
+			Eventually(session).ShouldNot(Say("\thttps://api.run.pivotal.io"))
 		})
 	})
 

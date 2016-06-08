@@ -72,6 +72,25 @@ func AddToGroup(plexHome, group, api string) (string, error) {
 	return fullPath, err
 }
 
+func RemoveFromGroup(plexHome, group, api string) error {
+	apiDir := Sanitise(api)
+	fullPath := filepath.Join(plexHome, "groups", group, apiDir)
+	err := os.RemoveAll(fullPath)
+	if err != nil {
+		return err
+	}
+
+	groupDir := filepath.Join(plexHome, "groups", group)
+	dirs, err := listDirs(groupDir)
+	if err != nil {
+		return err
+	}
+	if len(dirs) == 0 {
+		err = os.RemoveAll(groupDir)
+	}
+	return err
+}
+
 func Sanitise(apiUrl string) string {
 	api := strings.Replace(apiUrl, "https://", "https___", -1)
 	api = strings.Replace(api, "http://", "http___", -1)
