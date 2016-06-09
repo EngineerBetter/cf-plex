@@ -2,18 +2,21 @@
 
 Runs `cf` commands against multiple Cloud Foundry instances.
 
-CI: http://ci.engineerbetter.com/pipelines/cf-plex
+Cloud Foundry instances can be specified in three ways:
 
-Tracker: https://www.pivotaltracker.com/n/projects/1579861
+1. Ad-hoc: add APIs to one default list, and run commands against all of them
+1. Groups: add APIs to named groups, and run commands against all APIs in a specified group
+1. Batch: specify APIs in environment variables, and run commands only against those in the env vars
 
-## Example
+* CI: http://ci.engineerbetter.com/pipelines/cf-plex
+* Tracker: https://www.pivotaltracker.com/n/projects/1579861
 
-Create `new-org` on two Cloud Foundry instances:
-
-```bash
-cf-plex add-api https://api.some.com username password
-cf-plex add-api https://api.another.com username password
-cf-plex create-org new-org
+```
+Usage:
+  cf-plex [-g <group>] <cf cli command> [--force]
+  cf-plex add-api [-g <group>] <apiUrl> [<username> <password>]
+  cf-plex list-apis
+  cf-plex remove-api [-g <group>] <apiUrl>
 ```
 
 ## Installation
@@ -28,14 +31,33 @@ Otherwise [download the latest release](https://github.com/EngineerBetter/cf-ple
 
 ## Usage
 
-### Interactive Mode
+### Ad Hoc Mode
 
-`cf-plex` manages a set of `CF_HOME` directories, one for each Cloud Foundry instance you ask it to manage. These are stored in `CF_PLEX_HOME`.
+Add and remove APIs in one global list.
 
 * `cf-plex add-api https://api.some.com username password` Add an API to be used
 * `cf-plex add-api https://api.some.com` Add an API to be used, and prompt for credentials
 * `cf-plex list-apis` Show APIs that are active
 * `cf-plex remove-api https://api.some.com` Remove an API
+
+`cf-plex` manages a set of `CF_HOME` directories, one for each Cloud Foundry instance you ask it to manage. These are stored in `CF_PLEX_HOME`.
+
+### Group Mode
+
+Manage APIs in named groups. Use cases include operating on all non-production instances at once.
+
+* `cf-plex add-api -g nonprod https://api.nonprod.example.com username password` Add an API to the 'nonprod' group
+* `cf-plex list-apis` Show all groups and APIs
+* `cf-plex -g nonprod delete-user admin` Delete the admin user only on non-prod
+* `cf-plex remove-api -g nonprod https://api.nonprod.example.com` Remove an API from a group
+
+You may not add a group called "default" or "batch", as these are used internally.
+
+Once any group has been added, APIs not assigned to a group can only be referenced by using `-g default`. This is to prevent slips whereby a user may forget to specify a group and accidentally run commands against whatever they defined previously.
+
+Groups are implicitly managed: once there are no APIs in a group, it will cease to exist.
+
+`CF_HOME` directories for APIs in a group are stored in `$CF_PLEX_HOME/groups/`, which is deleted automatically when the last group is removed.
 
 ### Batch Mode
 
@@ -53,6 +75,8 @@ If your credentials contain the separators used in the example above, you can sp
 * `CF_PLEX_SEP_TRIPLE` for the separator between the three items that identify a Cloud Foundry
 * `CF_PLEX_SEP_CREDS_API` for the separator between the user/pass and the API URL
 * `CF_PLEX_SEP_USER_PASS` for the separator betwen the username and the password
+
+`cf-plex` stores the `CF_HOME` directories for APIs used in batch mode in `$CF_PLEX_HOME/groups/batch`. These are left on disk, to prevent unecessary authentication on successive invocations.
 
 ### Ignoring Errors
 
