@@ -198,7 +198,7 @@ func getTargetsFromEnv(cfPlexHome, cfEnvs string) []target.Target {
 	bailIfB0rked(err)
 
 	for _, coord := range coords {
-		apiDir, err := target.AddToGroup(cfPlexHome, "batch", coord.Api)
+		apiDir, err := target.AddToBatch(cfPlexHome, coord.Api)
 		bailIfB0rked(err)
 		targets = append(targets, target.Target{Name: coord.Api, Path: apiDir})
 

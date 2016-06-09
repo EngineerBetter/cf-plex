@@ -39,6 +39,16 @@ var _ = Describe("target", func() {
 			err := RemoveFromGroup(tmpDir, "default", "https://api.example.com")
 			Ω(err).Should(MatchError("group name default is reserved"))
 		})
+
+		It("forbids groups called batch from being added", func() {
+			_, err := AddToGroup(tmpDir, "batch", "https://api.example.com")
+			Ω(err).Should(MatchError("group name batch is reserved"))
+		})
+
+		It("forbids groups called batch from being removed", func() {
+			err := RemoveFromGroup(tmpDir, "batch", "https://api.example.com")
+			Ω(err).Should(MatchError("group name batch is reserved"))
+		})
 	})
 })
 

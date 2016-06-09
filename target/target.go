@@ -74,20 +74,21 @@ func GroupsExist(plexHome string) bool {
 	return true
 }
 
+func AddToBatch(plexHome, api string) (string, error) {
+	return addToGroup(plexHome, "batch", api)
+}
+
 func AddToGroup(plexHome, group, api string) (string, error) {
 	if groupNameIsReserved(group) {
-		return "", errors.New("group name default is reserved")
+		return "", errors.New("group name " + group + " is reserved")
 	}
 
-	apiDir := Sanitise(api)
-	fullPath := filepath.Join(plexHome, "groups", group, apiDir)
-	err := os.MkdirAll(fullPath, 0700)
-	return fullPath, err
+	return addToGroup(plexHome, group, api)
 }
 
 func RemoveFromGroup(plexHome, group, api string) error {
 	if groupNameIsReserved(group) {
-		return errors.New("group name default is reserved")
+		return errors.New("group name " + group + " is reserved")
 	}
 
 	apiDir := Sanitise(api)
@@ -120,6 +121,13 @@ func MakeFilthy(apiDir string) string {
 	return api
 }
 
+func addToGroup(plexHome, group, api string) (string, error) {
+	apiDir := Sanitise(api)
+	fullPath := filepath.Join(plexHome, "groups", group, apiDir)
+	err := os.MkdirAll(fullPath, 0700)
+	return fullPath, err
+}
+
 func getTargets(parentPath string) ([]Target, error) {
 	apiDirs, err := listDirs(parentPath)
 	if err != nil {
@@ -139,7 +147,7 @@ func groupIsVisible(groupName string) bool {
 }
 
 func groupNameIsReserved(groupName string) bool {
-	return groupName == "default"
+	return groupName == "default" || groupName == "batch"
 }
 
 func listDirs(path string) ([]string, error) {
