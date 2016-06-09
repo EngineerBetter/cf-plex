@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	. "github.com/EngineerBetter/cf-plex"
+	"github.com/EngineerBetter/cf-plex/cfcli"
 	"github.com/EngineerBetter/cf-plex/clipr"
 	"github.com/EngineerBetter/cf-plex/env"
 	. "github.com/onsi/ginkgo"
@@ -189,7 +189,7 @@ var _ = Describe("cf-plex", func() {
 		})
 
 		It("fails when subprocesses fail", func() {
-			session, _ := Start(CommandWithEnv(envVars, cliPath, "rubbish"), GinkgoWriter, GinkgoWriter)
+			session, _ := startSession(envVars, cliPath, "rubbish")
 			Eventually(session).Should(Exit(1))
 		})
 
@@ -355,7 +355,7 @@ var _ = Describe("cf-plex", func() {
 })
 
 func startSession(envVars []string, args ...string) (*Session, io.Writer) {
-	cmd := CommandWithEnv(envVars, args...)
+	cmd := cfcli.CommandWithEnv(envVars, args...)
 	in, err := cmd.StdinPipe()
 	Ω(err).ShouldNot(HaveOccurred())
 	session, err := Start(cmd, GinkgoWriter, GinkgoWriter)

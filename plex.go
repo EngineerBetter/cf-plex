@@ -1,18 +1,14 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
+	"github.com/EngineerBetter/cf-plex/cfcli"
 	"github.com/EngineerBetter/cf-plex/env"
 	"github.com/EngineerBetter/cf-plex/target"
 	"github.com/mitchellh/go-homedir"
-	"io"
 	"os"
-	"os/exec"
-	"path"
 	"path/filepath"
 	"strings"
-	"syscall"
 )
 
 var cfUsage = "cf-plex [-g <group>] <cf cli command> [--force]"
@@ -42,7 +38,7 @@ func main() {
 					api := args[4]
 					fullPath, err := target.AddToGroup(cfPlexHome, group, api)
 					bailIfB0rked(err)
-					runCf(fullPath, []string{"", "login", "-a", api})
+					mustRunCf(fullPath, []string{"", "login", "-a", api})
 					fmt.Println("Added " + api + " to group '" + group + "'")
 					os.Exit(0)
 				} else if len(args) == 7 {
@@ -53,8 +49,8 @@ func main() {
 
 					fullPath, err := target.AddToGroup(cfPlexHome, group, api)
 					bailIfB0rked(err)
-					runCf(fullPath, []string{"", "api", api})
-					runCf(fullPath, []string{"", "auth", username, password})
+					mustRunCf(fullPath, []string{"", "api", api})
+					mustRunCf(fullPath, []string{"", "auth", username, password})
 					fmt.Println("Added " + api + " to group '" + group + "'")
 					os.Exit(0)
 				}
@@ -62,7 +58,7 @@ func main() {
 				api := args[2]
 				fullPath, err := target.Add(cfPlexHome, api)
 				bailIfB0rked(err)
-				runCf(fullPath, []string{"", "login", "-a", api})
+				mustRunCf(fullPath, []string{"", "login", "-a", api})
 				os.Exit(0)
 			} else if len(args) == 5 {
 				api := args[2]
@@ -71,8 +67,8 @@ func main() {
 
 				fullPath, err := target.Add(cfPlexHome, api)
 				bailIfB0rked(err)
-				runCf(fullPath, []string{"", "api", api})
-				runCf(fullPath, []string{"", "auth", username, password})
+				mustRunCf(fullPath, []string{"", "api", api})
+				mustRunCf(fullPath, []string{"", "auth", username, password})
 				os.Exit(0)
 			}
 		}
@@ -164,18 +160,13 @@ func main() {
 
 		fmt.Println()
 		for _, aTarget := range targets {
-			exitCode, _ := runCf(aTarget.Path, args)
+			err, exitCode, _ := cfcli.Run(aTarget.Path, args)
+			bailIfB0rked(err)
 			if exitCode != 0 && !force {
 				os.Exit(exitCode)
 			}
 		}
 	}
-}
-
-func CommandWithEnv(env []string, args ...string) *exec.Cmd {
-	cmd := exec.Command(args[0], args[1:]...)
-	cmd.Env = env
-	return cmd
 }
 
 func getConfigDir() (configDir string) {
@@ -211,54 +202,23 @@ func getTargetsFromEnv(cfPlexHome, cfEnvs string) []target.Target {
 		bailIfB0rked(err)
 		targets = append(targets, target.Target{Name: coord.Api, Path: apiDir})
 
-		_, output := runCf(apiDir, []string{"", "api", coord.Api})
+		output := mustRunCf(apiDir, []string{"", "api", coord.Api})
+
 		if strings.Contains(output, "Not logged in") {
-			runCf(apiDir, []string{"", "auth", coord.Username, coord.Password})
+			mustRunCf(apiDir, []string{"", "auth", coord.Username, coord.Password})
 		}
 	}
 
 	return targets
 }
 
-func runCf(cfHome string, args []string) (int, string) {
-	args[0] = "cf"
-	env := env.Set("CF_HOME", cfHome, os.Environ())
-	cmd := CommandWithEnv(env, args...)
-
-	buffer := bytes.NewBufferString("")
-	multiWriter := io.MultiWriter(os.Stdout, buffer)
-
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = multiWriter
-	cmd.Stderr = os.Stderr
-
-	status := fmt.Sprintf("\nRunning '%s' on %s\n", strings.Join(args, " "), path.Base(cfHome))
-
-	if args[1] == "auth" {
-		status = strings.Replace(status, args[3], "[expunged]", -1)
-	}
-
-	fmt.Printf(status)
-	err := cmd.Start()
+func mustRunCf(cfHome string, args []string) string {
+	err, exitCode, output := cfcli.Run(cfHome, args)
 	bailIfB0rked(err)
-	err = cmd.Wait()
-	output := buffer.String()
-	return determineExitCode(cmd, err), output
-}
-
-func determineExitCode(cmd *exec.Cmd, err error) (exitCode int) {
-	status := cmd.ProcessState.Sys().(syscall.WaitStatus)
-	if status.Signaled() {
-		exitCode = 128 + int(status.Signal())
-	} else {
-		exitStatus := status.ExitStatus()
-		if exitStatus == -1 && err != nil {
-			exitCode = 254
-		}
-		exitCode = exitStatus
+	if exitCode != 0 {
+		os.Exit(exitCode)
 	}
-
-	return
+	return output
 }
 
 func printUsageAndBail() {
