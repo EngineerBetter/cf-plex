@@ -34,6 +34,11 @@ var _ = Describe("target", func() {
 			_, err := AddToGroup(tmpDir, "default", "https://api.example.com")
 			Ω(err).Should(MatchError("group name default is reserved"))
 		})
+
+		It("forbids groups called default from being removed", func() {
+			err := RemoveFromGroup(tmpDir, "default", "https://api.example.com")
+			Ω(err).Should(MatchError("group name default is reserved"))
+		})
 	})
 })
 

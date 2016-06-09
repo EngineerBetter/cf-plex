@@ -86,6 +86,10 @@ func AddToGroup(plexHome, group, api string) (string, error) {
 }
 
 func RemoveFromGroup(plexHome, group, api string) error {
+	if groupNameIsReserved(group) {
+		return errors.New("group name default is reserved")
+	}
+
 	apiDir := Sanitise(api)
 	fullPath := filepath.Join(plexHome, "groups", group, apiDir)
 	err := os.RemoveAll(fullPath)
