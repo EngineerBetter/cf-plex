@@ -337,6 +337,24 @@ var _ = Describe("cf-plex", func() {
 			Eventually(session, timeout).Should(Exit(0))
 			Ω(string(session.Buffer().Contents())).ShouldNot(ContainSubstring("api.eu-gb.bluemix.net"))
 		})
+
+		It("does not treat batch APIs as a group", func() {
+			cfEnvs := cfUsername + "^" + cfPassword + ">https://api.eu-gb.bluemix.net"
+			cfPlexApisEnvVars := append(envVars, "CF_PLEX_APIS="+cfEnvs)
+			session, in := startSession(cfPlexApisEnvVars, cliPath, "delete-org", "does-not-exist")
+			Eventually(session, timeout).Should(Say("Authenticating...\nOK"))
+			expectRunning(session, "cf delete-org does-not-exist", "https___api.eu-gb.bluemix.net")
+			confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+			Eventually(session).Should(Exit(0))
+
+			session, _ = startSession(envVars, cliPath, "add-api", "-g", "nonprod", "https://api.run.pivotal.io", cfUsername, cfPassword)
+			Eventually(session, timeout).Should(Exit(0))
+
+			session, _ = startSession(envVars, cliPath, "list-apis")
+			Eventually(session).Should(Exit(0))
+			Eventually(session).ShouldNot(Say("batch"))
+			Eventually(session).ShouldNot(Say("\thttps://api.eu-gb.bluemix.net"))
+		})
 	})
 
 	Describe("asking for help", func() {

@@ -45,7 +45,11 @@ func List(plexHome string) ([]Group, error) {
 			if err != nil {
 				return nil, err
 			}
-			groups = append(groups, Group{Name: filepath.Base(groupDir), Apis: targets})
+
+			groupName := filepath.Base(groupDir)
+			if groupIsPublic(groupName) {
+				groups = append(groups, Group{Name: filepath.Base(groupDir), Apis: targets})
+			}
 		}
 	} else {
 		targets, err := getTargets(plexHome)
@@ -119,6 +123,10 @@ func getTargets(parentPath string) ([]Target, error) {
 		targets = append(targets, Target{Name: name, Path: apiDir})
 	}
 	return targets, nil
+}
+
+func groupIsPublic(groupName string) bool {
+	return groupName != "batch"
 }
 
 func listDirs(path string) ([]string, error) {
