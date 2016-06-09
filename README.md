@@ -8,11 +8,9 @@ Cloud Foundry instances can be specified in three ways:
 1. Groups: add APIs to named groups, and run commands against all APIs in a specified group
 1. Batch: specify APIs in environment variables, and run commands only against those in the env vars
 
-* CI: http://ci.engineerbetter.com/pipelines/cf-plex
-* Tracker: https://www.pivotaltracker.com/n/projects/1579861
+### Usage
 
 ```
-Usage:
   cf-plex [-g <group>] <cf cli command> [--force]
   cf-plex add-api [-g <group>] <apiUrl> [<username> <password>]
   cf-plex list-apis
@@ -21,19 +19,21 @@ Usage:
 
 ## Installation
 
-If you have a working Go development environment:
+### Go developers
 
 ```
 go get github.com/EngineerBetter/cf-plex
 ```
 
-Otherwise [download the latest release](https://github.com/EngineerBetter/cf-plex/releases/latest) for your OS, save it to `PATH`, rename it `cf-plex` and make sure it is executable (`chmod +x cf-plex`).
+### Everyone else
 
-## Usage
+[download the latest release](https://github.com/EngineerBetter/cf-plex/releases/latest) for your OS, save it to `PATH`, rename it `cf-plex` and make sure it is executable (`chmod +x cf-plex`).
+
+## Detailed Usage
 
 ### Ad Hoc Mode
 
-Add and remove APIs in one global list.
+Add and remove APIs in **one global list**.
 
 * `cf-plex add-api https://api.some.com username password` Add an API to be used
 * `cf-plex add-api https://api.some.com` Add an API to be used, and prompt for credentials
@@ -44,7 +44,7 @@ Add and remove APIs in one global list.
 
 ### Group Mode
 
-Manage APIs in named groups. Use cases include operating on all non-production instances at once.
+Manage APIs in **named groups**. Use cases include operating on all non-production instances at once.
 
 * `cf-plex add-api -g nonprod https://api.nonprod.example.com username password` Add an API to the 'nonprod' group
 * `cf-plex list-apis` Show all groups and APIs
@@ -100,6 +100,11 @@ CF_USERNAME=testing@engineerbetter.com \
 CF_PASSWORD=lookitup \
 go test -v ./...
 ```
+
+## Project
+
+* CI: http://ci.engineerbetter.com/pipelines/cf-plex
+* Tracker: https://www.pivotaltracker.com/n/projects/1579861
 
 ## Acknowledgements
 
