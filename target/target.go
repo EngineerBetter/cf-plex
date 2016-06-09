@@ -35,6 +35,12 @@ func Remove(plexHome, api string) error {
 func List(plexHome string) ([]Group, error) {
 	var groups []Group
 
+	targets, err := getTargets(plexHome)
+	if err != nil {
+		return nil, err
+	}
+	groups = append(groups, Group{Name: "default", Apis: targets})
+
 	if GroupsExist(plexHome) {
 		dirs, err := listDirs(filepath.Join(plexHome, "groups"))
 		if err != nil {
@@ -52,12 +58,6 @@ func List(plexHome string) ([]Group, error) {
 				groups = append(groups, Group{Name: filepath.Base(groupDir), Apis: targets})
 			}
 		}
-	} else {
-		targets, err := getTargets(plexHome)
-		if err != nil {
-			return nil, err
-		}
-		groups = append(groups, Group{Name: "default", Apis: targets})
 	}
 
 	return groups, nil
@@ -137,7 +137,10 @@ func getTargets(parentPath string) ([]Target, error) {
 	var targets []Target
 	for _, apiDir := range apiDirs {
 		name := MakeFilthy(path.Base(apiDir))
-		targets = append(targets, Target{Name: name, Path: apiDir})
+
+		if name != "groups" {
+			targets = append(targets, Target{Name: name, Path: apiDir})
+		}
 	}
 	return targets, nil
 }
