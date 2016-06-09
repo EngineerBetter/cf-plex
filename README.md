@@ -27,7 +27,7 @@ go get github.com/EngineerBetter/cf-plex
 
 ### Everyone else
 
-[download the latest release](https://github.com/EngineerBetter/cf-plex/releases/latest) for your OS, save it to `PATH`, rename it `cf-plex` and make sure it is executable (`chmod +x cf-plex`).
+[Download the latest release](https://github.com/EngineerBetter/cf-plex/releases/latest) for your OS, save it to `PATH`, rename it `cf-plex` and make sure it is executable (`chmod +x cf-plex`).
 
 ## Detailed Usage
 
