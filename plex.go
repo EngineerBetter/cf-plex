@@ -133,7 +133,7 @@ func main() {
 					}
 				}
 
-				if len(targets) == -0 {
+				if len(targets) == 0 {
 					os.Stderr.WriteString("Group '" + groupName + "' not recognised")
 					os.Exit(1)
 				}
