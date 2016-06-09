@@ -11,17 +11,28 @@ import (
 )
 
 var _ = Describe("target", func() {
+	var tmpDir string
+
+	BeforeEach(func() {
+		tmpDir, err := ioutil.TempDir("", "plex-target")
+		defer os.RemoveAll(tmpDir)
+		Ω(err).ShouldNot(HaveOccurred())
+	})
+
 	Describe("Group management", func() {
 		It("allows groups to be added, listed, and deleted", func() {
-			tmpDir, err := ioutil.TempDir("", "plex-target")
-			defer os.RemoveAll(tmpDir)
-			Ω(err).ShouldNot(HaveOccurred())
-
 			AddToGroup(tmpDir, "prod", "https://api.example.com")
 			Ω(exists(filepath.Join(tmpDir, "groups", "prod"))).Should(BeTrue(), "group dir should exist after creation")
 
 			RemoveFromGroup(tmpDir, "prod", "https://api.example.com")
 			Ω(exists(filepath.Join(tmpDir, "groups", "prod"))).Should(BeFalse(), "group dir should not exist after removal")
+		})
+	})
+
+	Describe("reserved group names", func() {
+		It("forbids groups called default from being added", func() {
+			_, err := AddToGroup(tmpDir, "default", "https://api.example.com")
+			Ω(err).Should(MatchError("group name default is reserved"))
 		})
 	})
 })

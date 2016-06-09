@@ -1,6 +1,7 @@
 package target
 
 import (
+	"errors"
 	"os"
 	"path"
 	"path/filepath"
@@ -47,7 +48,7 @@ func List(plexHome string) ([]Group, error) {
 			}
 
 			groupName := filepath.Base(groupDir)
-			if groupIsPublic(groupName) {
+			if groupIsVisible(groupName) {
 				groups = append(groups, Group{Name: filepath.Base(groupDir), Apis: targets})
 			}
 		}
@@ -74,6 +75,10 @@ func GroupsExist(plexHome string) bool {
 }
 
 func AddToGroup(plexHome, group, api string) (string, error) {
+	if groupNameIsReserved(group) {
+		return "", errors.New("group name default is reserved")
+	}
+
 	apiDir := Sanitise(api)
 	fullPath := filepath.Join(plexHome, "groups", group, apiDir)
 	err := os.MkdirAll(fullPath, 0700)
@@ -125,8 +130,12 @@ func getTargets(parentPath string) ([]Target, error) {
 	return targets, nil
 }
 
-func groupIsPublic(groupName string) bool {
+func groupIsVisible(groupName string) bool {
 	return groupName != "batch"
+}
+
+func groupNameIsReserved(groupName string) bool {
+	return groupName == "default"
 }
 
 func listDirs(path string) ([]string, error) {
