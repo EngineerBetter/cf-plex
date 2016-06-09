@@ -326,6 +326,17 @@ var _ = Describe("cf-plex", func() {
 			Eventually(session).ShouldNot(Say("nonprod"))
 			Eventually(session).ShouldNot(Say("\thttps://api.run.pivotal.io"))
 		})
+
+		It("does not run commands against APIs not in the group", func() {
+			addApi("https://api.eu-gb.bluemix.net", cfUsername, cfPassword, envVars, cliPath)
+			session, _ := startSession(envVars, cliPath, "add-api", "-g", "nonprod", "https://api.run.pivotal.io", cfUsername, cfPassword)
+			Eventually(session, timeout).Should(Exit(0))
+			session, in := startSession(envVars, cliPath, "-g", "nonprod", "delete-org", "does-not-exist")
+			expectRunning(session, "cf delete-org does-not-exist", "https___api.run.pivotal.io")
+			confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+			Eventually(session, timeout).Should(Exit(0))
+			Ω(string(session.Buffer().Contents())).ShouldNot(ContainSubstring("api.eu-gb.bluemix.net"))
+		})
 	})
 
 	Describe("asking for help", func() {
