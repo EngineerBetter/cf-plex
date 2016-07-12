@@ -1,5 +1,7 @@
 # cf-plex
 
+![Build Status](http://ci.engineerbetter.com/api/v1/pipelines/cf-plex/jobs/test/badge)
+
 Runs `cf` commands against multiple Cloud Foundry instances.
 
 Cloud Foundry instances can be specified in three ways:
