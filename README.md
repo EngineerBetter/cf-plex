@@ -1,6 +1,6 @@
 # cf-plex
 
-![Build Status](http://ci.engineerbetter.com/api/v1/pipelines/cf-plex/jobs/test/badge)
+![Build Status](http://ci.engineerbetter.com/api/v1/teams/main/pipelines/cf-plex/jobs/test/badge)
 
 Runs `cf` commands against multiple Cloud Foundry instances.
 
@@ -70,7 +70,7 @@ export CF_PLEX_APIS="username^password>https://api.some.com;username^password>ht
 cf-plex create-org new-org
 ```
 
-State for batch operations is stored separately to interactive mode: that is, each API's `CF_HOME` is stored as a subdirectory `$HOME/$CF_PLEX_HOME/batch`. 
+State for batch operations is stored separately to interactive mode: that is, each API's `CF_HOME` is stored as a subdirectory `$HOME/$CF_PLEX_HOME/batch`.
 
 If your credentials contain the separators used in the example above, you can specify your own as environment variables:
 
@@ -110,4 +110,4 @@ go test -v ./...
 
 ## Acknowledgements
 
-In order to prove that plugin behaviour is unaffected by `cf-plex`, [Simon Leung's `cli-plugin-echo`](https://github.com/simonleung8/cli-plugin-echo) is vendored as a test fixture. 
+In order to prove that plugin behaviour is unaffected by `cf-plex`, [Simon Leung's `cli-plugin-echo`](https://github.com/simonleung8/cli-plugin-echo) is vendored as a test fixture.
