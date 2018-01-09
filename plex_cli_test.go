@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http/httptest"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/EngineerBetter/cf-plex/cfcli"
@@ -75,9 +76,9 @@ var _ = Describe("cf-plex", func() {
 			clipr.Configure(server.Config, server.URL, "clipr/fixtures/osx/echo", "clipr/fixtures/linux64/echo")
 
 			session, _ := startSession(envVars, "cf", "add-plugin-repo", "test", server.URL)
-			Eventually(session).Should(Say("added as 'test'"))
+			Eventually(session).Should(Say("added as test"))
 			session, in := startSession(envVars, "cf", "install-plugin", "echo", "-r", "test")
-			confirm("(Do you want to install the plugin echo?)", "y", session, in)
+			confirm("Do you want to install the plugin echo?", "y", session, in)
 
 			Eventually(session).Should(Say("Plugin EchoDemo v0.1.4 successfully installed"))
 
@@ -175,11 +176,11 @@ var _ = Describe("cf-plex", func() {
 
 			session, in := startSession(envVars, cliPath, "delete-org", "does-not-exist")
 			expectRunning(session, "cf delete-org does-not-exist", "https___api.eu-gb.bluemix.net")
-			confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+			confirm("Really delete the org does-not-exist, including its spaces, apps, service instances, routes, private domains and space-scoped service brokers? [yN]:", "n", session, in)
 			Eventually(session, timeout).Should(Say("Delete cancelled"))
 
 			expectRunning(session, "cf delete-org does-not-exist", "https___api.run.pivotal.io")
-			confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+			confirm("Really delete the org does-not-exist, including its spaces, apps, service instances, routes, private domains and space-scoped service brokers? [yN]:", "n", session, in)
 			Eventually(session, timeout).Should(Say("Delete cancelled"))
 			Eventually(session).Should(Exit(0))
 
@@ -234,11 +235,11 @@ var _ = Describe("cf-plex", func() {
 				Eventually(session, timeout).Should(Say("Setting api endpoint to https://api.eu-gb.bluemix.net"))
 				Eventually(session, timeout).Should(Say("Authenticating...\nOK"))
 				expectRunning(session, "cf delete-org does-not-exist", "https___api.run.pivotal.io")
-				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+				confirm("Really delete the org does-not-exist, including its spaces, apps, service instances, routes, private domains and space-scoped service brokers? [yN]:", "n", session, in)
 				Eventually(session, timeout).Should(Say("Delete cancelled"))
 
 				expectRunning(session, "cf delete-org does-not-exist", "https___api.eu-gb.bluemix.net")
-				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+				confirm("Really delete the org does-not-exist, including its spaces, apps, service instances, routes, private domains and space-scoped service brokers? [yN]:", "n", session, in)
 				Eventually(session, timeout).Should(Say("Delete cancelled"))
 				Eventually(session).Should(Exit(0))
 
@@ -282,11 +283,11 @@ var _ = Describe("cf-plex", func() {
 				Eventually(session, timeout).Should(Say("Setting api endpoint to https://api.eu-gb.bluemix.net"))
 				Eventually(session, timeout).Should(Say("Authenticating...\nOK"))
 				expectRunning(session, "cf delete-org does-not-exist", "https___api.run.pivotal.io")
-				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+				confirm("Really delete the org does-not-exist, including its spaces, apps, service instances, routes, private domains and space-scoped service brokers? [yN]:", "n", session, in)
 				Eventually(session, timeout).Should(Say("Delete cancelled"))
 
 				expectRunning(session, "cf delete-org does-not-exist", "https___api.eu-gb.bluemix.net")
-				confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+				confirm("Really delete the org does-not-exist, including its spaces, apps, service instances, routes, private domains and space-scoped service brokers? [yN]:", "n", session, in)
 				Eventually(session, timeout).Should(Say("Delete cancelled"))
 				Eventually(session).Should(Exit(0))
 				Ω(string(session.Buffer().Contents())).ShouldNot(ContainSubstring(cfPassword))
@@ -315,7 +316,7 @@ var _ = Describe("cf-plex", func() {
 
 			session, in := startSession(envVars, cliPath, "-g", "nonprod", "delete-org", "does-not-exist")
 			expectRunning(session, "cf delete-org does-not-exist", "https___api.run.pivotal.io")
-			confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+			confirm("Really delete the org does-not-exist, including its spaces, apps, service instances, routes, private domains and space-scoped service brokers? [yN]:", "n", session, in)
 			Eventually(session, timeout).Should(Say("Delete cancelled"))
 			Eventually(session).Should(Exit(0))
 
@@ -335,7 +336,7 @@ var _ = Describe("cf-plex", func() {
 			Eventually(session, timeout).Should(Exit(0))
 			session, in := startSession(envVars, cliPath, "-g", "nonprod", "delete-org", "does-not-exist")
 			expectRunning(session, "cf delete-org does-not-exist", "https___api.run.pivotal.io")
-			confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+			confirm("Really delete the org does-not-exist, including its spaces, apps, service instances, routes, private domains and space-scoped service brokers? [yN]:", "n", session, in)
 			Eventually(session, timeout).Should(Exit(0))
 			Ω(string(session.Buffer().Contents())).ShouldNot(ContainSubstring("api.eu-gb.bluemix.net"))
 		})
@@ -346,7 +347,7 @@ var _ = Describe("cf-plex", func() {
 			Eventually(session, timeout).Should(Exit(0))
 			session, in := startSession(envVars, cliPath, "-g", "default", "delete-org", "does-not-exist")
 			expectRunning(session, "cf delete-org does-not-exist", "https___api.eu-gb.bluemix.net")
-			confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+			confirm("Really delete the org does-not-exist, including its spaces, apps, service instances, routes, private domains and space-scoped service brokers? [yN]:", "n", session, in)
 			Eventually(session, timeout).Should(Exit(0))
 			Ω(string(session.Buffer().Contents())).ShouldNot(ContainSubstring("api.run.pivotal.io"))
 		})
@@ -357,7 +358,7 @@ var _ = Describe("cf-plex", func() {
 			session, in := startSession(cfPlexApisEnvVars, cliPath, "delete-org", "does-not-exist")
 			Eventually(session, timeout).Should(Say("Authenticating...\nOK"))
 			expectRunning(session, "cf delete-org does-not-exist", "https___api.eu-gb.bluemix.net")
-			confirm("Really delete the org does-not-exist and everything associated with it?", "n", session, in)
+			confirm("Really delete the org does-not-exist, including its spaces, apps, service instances, routes, private domains and space-scoped service brokers? [yN]:", "n", session, in)
 			Eventually(session).Should(Exit(0))
 
 			session, _ = startSession(envVars, cliPath, "add-api", "-g", "nonprod", "https://api.run.pivotal.io", cfUsername, cfPassword)
@@ -409,7 +410,7 @@ func removeApi(api string, envVars []string, cliPath string) {
 }
 
 func confirm(expectedPrompt, input string, session *Session, in io.Writer) {
-	Eventually(session, timeout).Should(Say(expectedPrompt))
+	Eventually(session, timeout).Should(Say(regexp.QuoteMeta(expectedPrompt)))
 	in.Write([]byte(input + "\n"))
 }
 
