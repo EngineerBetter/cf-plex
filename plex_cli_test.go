@@ -43,6 +43,7 @@ var _ = Describe("cf-plex", func() {
 		Ω(cfPassword).ShouldNot(BeZero(), "CF_PASSWORD env var must be set")
 
 		envVars = env.Set("CF_PLEX_HOME", tmpDir, os.Environ())
+		envVars = env.Set("CF_COLOR", "false", envVars)
 		cliPath, err = Build("github.com/EngineerBetter/cf-plex")
 		Ω(err).ShouldNot(HaveOccurred())
 	})
@@ -66,6 +67,7 @@ var _ = Describe("cf-plex", func() {
 
 		It("can use existing plugins", func() {
 			envVars = env.Set("CF_PLUGIN_HOME", tmpCfHome, os.Environ())
+			envVars = env.Set("CF_COLOR", "false", envVars)
 			envVars = env.Set("CF_HOME", tmpCfHome, envVars)
 
 			server := httptest.NewServer(nil)
