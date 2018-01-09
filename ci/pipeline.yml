@@ -8,18 +8,18 @@ jobs:
   - task: test
     file: cf-plex/ci/tasks/test.yml
     params:
-      CF_PASSWORD: {{testing_cf_password}}
+      CF_PASSWORD: ((testing_cf_password))
     on_success:
         put: slack-notify
         params:
           text: "cf-plex tests passed. \n Check: http://ci.engineerbetter.com/pipelines/cf-plex/jobs/test"
-          channel: {{slack_channel}}
+          channel: ((slack_channel))
           username: concourse
     on_failure:
         put: slack-notify
         params:
           text: "cf-plex tests failed. \n Check: http://ci.engineerbetter.com/pipelines/cf-plex/jobs/test"
-          channel: {{slack_channel}}
+          channel: ((slack_channel))
           username: concourse
 
 - name: release
@@ -49,12 +49,12 @@ resources:
   source:
     user: EngineerBetter
     repository: cf-plex
-    access_token: {{github_access_token}}
+    access_token: ((github_access_token))
 
 - name: slack-notify
   type: slack-notification
   source:
-    url: {{slack_webhook}}
+    url: ((slack_webhook))
 
 
 resource_types:
