@@ -80,7 +80,7 @@ var _ = Describe("cf-plex", func() {
 			session, in := startSession(envVars, "cf", "install-plugin", "echo", "-r", "test")
 			confirm("Do you want to install the plugin echo?", "y", session, in)
 
-			Eventually(session).Should(Say("Plugin EchoDemo v0.1.4 successfully installed"))
+			Eventually(session).Should(Say("Plugin EchoDemo 0.1.4 successfully installed"))
 
 			addApi("https://api.run.pivotal.io", cfUsername, cfPassword, envVars, cliPath)
 			addApi("https://api.eu-gb.bluemix.net", cfUsername, cfPassword, envVars, cliPath)
