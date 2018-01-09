@@ -43,7 +43,7 @@ var responseBody = `{"plugins": [
       {
         "platform":"osx",
         "url":"%s/bin/osx/echo",
-        "checksum":"86aed94e9efd8bdda669c96fc36c979d9acbea5c"
+        "checksum":"ce4964c30c3eecdf5f218ae2a7572304602f23cb"
       },
       {
         "platform":"linux64",
